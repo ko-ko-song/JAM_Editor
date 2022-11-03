@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            file-extensions="jam"
+            id="kr.ac.uos.ai.ide.jam"
+            name="Jam Plan File"
+            priority="high">
+      </content-type>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editorContentTypeBinding
+            contentTypeId="kr.ac.uos.ai.ide.jam"
+            editorId="org.eclipse.ui.genericeditor.GenericEditor">
+      </editorContentTypeBinding>
+   </extension>
+   <extension
+         point="org.eclipse.ui.genericeditor.presentationReconcilers">
+      <presentationReconciler
+            class="kr.ac.uos.ai.editor.jamEditor.PlanPropertiesReconciler"
+            contentType="kr.ac.uos.ai.ide.jam">
+      </presentationReconciler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.genericeditor.contentAssistProcessors">
+      <contentAssistProcessor
+            class="kr.ac.uos.ai.editor.jamEditor.PlanPropertiesContentAssistProcessor"
+            contentType="kr.ac.uos.ai.ide.jam">
+      </contentAssistProcessor>
+   </extension>
+
+ <extension
+       point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
+    <hyperlinkDetector
+          activate="true"
+          class="kr.ac.uos.ai.editor.jamEditor.HyperlinkDetector"
+          id="com.vogella.ide.editor.tasks.hyperlinkDetector"
+          name="Hyperlink to other tasks files"
+          targetId="org.eclipse.ui.genericeditor.GenericEditor">
+    </hyperlinkDetector>
+ </extension>
+
+
+
+
+</plugin>
