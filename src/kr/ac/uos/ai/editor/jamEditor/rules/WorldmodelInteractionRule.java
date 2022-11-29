@@ -1,17 +1,17 @@
-package kr.ac.uos.ai.editor.jamEditor;
+package kr.ac.uos.ai.editor.jamEditor.rules;
 
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class PlanPropertyNameRule implements IRule{
+public class WorldmodelInteractionRule implements IRule{
 
 	private final Token token;
 	
-	public final String[] planPropertyNames = {"ID:", "NAME:", "PRECONDITION:", "CONTEXT:", "BODY:", "UTILITY:"};
+	public final String[] GOALACTION = {"FACT ", "RETRIEVE ", "MATCH ", "UPDATE "};
 	
-	public PlanPropertyNameRule(Token token) {
+	public WorldmodelInteractionRule(Token token) {
 		this.token = token;
 	}
 	
@@ -26,13 +26,14 @@ public class PlanPropertyNameRule implements IRule{
 			sb.append((char)c);
 			
 			
-			for(String propertyName : planPropertyNames){
-				if(sb.toString().equals(propertyName))
+			for (String goalAction : GOALACTION) {
+				if(sb.toString().equals(goalAction))
 					return token;
 				
-				if(sb.toString().equals(propertyName.toLowerCase()))
+				if(sb.toString().equals(goalAction.toLowerCase()))
 					return token;
 			}
+			
 						
 			if ('\n' == c || '\r' == c) {
                 break;

@@ -1,4 +1,4 @@
-package kr.ac.uos.ai.editor.jamEditor;
+package kr.ac.uos.ai.editor.jamEditor.util;
 
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbench;
@@ -23,6 +23,9 @@ public class Util {
         if (activePage == null) {
             return null;
         }
+        
+        
         return activePage.getActiveEditor();
     }
+	
 }

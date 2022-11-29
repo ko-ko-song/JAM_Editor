@@ -1,17 +1,17 @@
-package kr.ac.uos.ai.editor.jamEditor;
+package kr.ac.uos.ai.editor.jamEditor.rules;
 
 import org.eclipse.jface.text.rules.ICharacterScanner;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 
-public class PlanGoalActionNameRule implements IRule{
+public class GoalActionRule implements IRule{
 
 	private final Token token;
 	
 	public final String[] GOALACTION = {"ACHIEVE ", "PERFORM ", "CONCLUDE ", "MAINTAIN "};
 	
-	public PlanGoalActionNameRule(Token token) {
+	public GoalActionRule(Token token) {
 		this.token = token;
 	}
 	

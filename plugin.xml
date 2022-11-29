@@ -20,7 +20,7 @@
    <extension
          point="org.eclipse.ui.genericeditor.presentationReconcilers">
       <presentationReconciler
-            class="kr.ac.uos.ai.editor.jamEditor.PlanPropertiesReconciler"
+            class="kr.ac.uos.ai.editor.jamEditor.JamPresentationReconciler"
             contentType="kr.ac.uos.ai.ide.jam">
       </presentationReconciler>
    </extension>

@@ -24,6 +24,8 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+import kr.ac.uos.ai.editor.jamEditor.util.Util;
+
 public class HyperlinkDetector extends AbstractHyperlinkDetector{
 	private static final String DEPENDENT_PROPERTY = "Dependent:";
 

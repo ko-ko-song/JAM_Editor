@@ -5,6 +5,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 
+import kr.ac.uos.ai.editor.jamEditor.util.Util;
+
 public class JamFileFinder{
 	
 	public JamFileFinder() {

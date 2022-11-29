@@ -21,17 +21,27 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
+
+import kr.ac.uos.ai.editor.jam.model.Plan;
+import kr.ac.uos.ai.editor.jamEditor.util.Util;
 
 public class PlanPropertiesContentAssistProcessor implements IContentAssistProcessor{
 	// public as used later by other code
-    public static final List<String> PALNINNERPROPOSALS = Arrays.asList("ID:", "NAME:", "PRECONDITION:", "CONTEXT:", "BODY:", "UTILITY:");
+//    public static final List<String> PALNINNERPROPOSALS = Arrays.asList("ID:", "NAME:", "PRECONDITION:", "CONTEXT:", "BODY:", "UTILITY:");
     public static List<String> GoalNameProposals;
     
     public PlanPropertiesContentAssistProcessor() {
-//    	System.out.println("Content Assist Processor 积己磊 积己");
 		GoalNameProposals = new LinkedList<String>();
-
+	
 	}
+    
+//    public void saveEditor() {
+//    	IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+//		IEditorPart editor = page.getActiveEditor();
+//		page.saveEditor(editor, true /* confirm */);
+//    }
     
     private List<String> getGoalNameList(IResource planFile) {
     	List<String> goalNames = null;
@@ -71,23 +81,23 @@ public class PlanPropertiesContentAssistProcessor implements IContentAssistProce
 
 	@Override
     public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-			
+		
         IDocument document = viewer.getDocument();
         
         //烙矫
-		List<IResource> jamFiles = findJamFiles();
+//		List<IResource> jamFiles = findJamFiles();
 		
-		if(jamFiles != null) {
-			for (IResource jamFile : jamFiles) {
-				List<String> jamFileList = getGoalNameList(jamFile);
-				if(jamFile != null) {
-					for (String goalName : jamFileList) {
-						if(!GoalNameProposals.contains(goalName))
-							GoalNameProposals.add(goalName);
-					}
-				}
-			}
-		}
+//		if(jamFiles != null) {
+//			for (IResource jamFile : jamFiles) {
+//				List<String> jamFileList = getGoalNameList(jamFile);
+//				if(jamFile != null) {
+//					for (String goalName : jamFileList) {
+//						if(!GoalNameProposals.contains(goalName))
+//							GoalNameProposals.add(goalName);
+//					}
+//				}
+//			}
+//		}
 		
 //		for (String goalName: GoalNameProposals) {
 //			System.out.println(goalName);
@@ -130,7 +140,14 @@ public class PlanPropertiesContentAssistProcessor implements IContentAssistProce
 
             int lineTextLength = offset - lineOffset;
             String lineStartToOffsetValue = document.get(lineOffset, lineTextLength).toLowerCase().trim();
+            
+            
+            
+            int replacementLength = lineStartToOffsetValue.length(); 
+            
             String scopeText = document.get(scopeStartOffset, scopeEndOffset - scopeStartOffset +1);
+            
+            
             
             boolean isBodyScope = false;
             
@@ -160,16 +177,51 @@ public class PlanPropertiesContentAssistProcessor implements IContentAssistProce
             }
            
             if(isBodyScope) {
-            	return GoalNameProposals.stream().filter(proposal -> proposal.toLowerCase().startsWith(lineStartToOffsetValue))
-            			.map(proposal -> new CompletionProposal(proposal, offset, 0, proposal.length()))
-            			.toArray(ICompletionProposal[]::new);
+            	
+            	
+            	String[] lineStartToOffsetValueSplit = lineStartToOffsetValue.split(" ");
+            	
+//            	System.out.println(lineStartToOffsetValue);
+//            	System.out.println(lineStartToOffsetValueSplit.length);
+            	
+            	List<String> planGoalsString = new LinkedList<String>();
+            	
+            	for (Plan plan  : JamEditorPlugin.getDefault().getEditorModel().getPlanManager().getAllPlans()) {
+            		
+            		String argString = "(";
+            		
+            		String[] args = plan.getGoalAction().getRelation().getArgs(); 
+            		
+            		if(args.length != 0) {
+            			for (String arg : args) {
+    						argString += arg + ", ";
+    					}
+            		}
+            		argString = argString.substring(0, argString.length() - 2);
+            		String planGoalString = plan.getGoalAction().getRelation().getName() + argString + ")";
+            		planGoalsString.add(planGoalString);
+				}
+            	
+            	if(lineStartToOffsetValueSplit.length < 2)
+            		return new ICompletionProposal[0];
+            	else {
+            		int replacementLength2 = lineStartToOffsetValueSplit[1].length();
+            		int replacementStartOffset = offset - replacementLength2;
+            		return planGoalsString.stream().filter(proposal -> proposal.toLowerCase().startsWith(lineStartToOffsetValueSplit[1]))
+                			.map(proposal -> new CompletionProposal(proposal, replacementStartOffset, replacementLength2, proposal.length()))
+                			.toArray(ICompletionProposal[]::new);
+            	}
+            	
+            	
             }
-            else if(isInScope) {
-                return PALNINNERPROPOSALS.stream().filter(proposal -> !scopeText.contains(proposal)
-                		&& proposal.toLowerCase().startsWith(lineStartToOffsetValue))
-                        .map(proposal -> new CompletionProposal(proposal, offset, 0, proposal.length()))
-                        .toArray(ICompletionProposal[]::new);            	
-            }
+            
+            
+//            else if(isInScope) {
+//                return PALNINNERPROPOSALS.stream().filter(proposal -> !scopeText.contains(proposal)
+//                		&& proposal.toLowerCase().startsWith(lineStartToOffsetValue))
+//                        .map(proposal -> new CompletionProposal(proposal, offset - replacementLength, replacementLength, proposal.length()))
+//                        .toArray(ICompletionProposal[]::new);            	
+//            }
             else {
                 return new ICompletionProposal[0];
             }

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JamEditor
 Bundle-SymbolicName: kr.ac.uos.ai.editor.jamEditor;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.1
 Automatic-Module-Name: kr.ac.uos.ai.editor.jamEditor
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.text;bundle-version="3.8.0",
@@ -10,7 +10,10 @@ Require-Bundle: org.eclipse.text;bundle-version="3.8.0",
  org.eclipse.ui.editors;bundle-version="3.11.300",
  org.eclipse.ui.genericeditor;bundle-version="1.1.200",
  org.eclipse.ui.workbench.texteditor;bundle-version="3.11.200",
- org.eclipse.jface.text;bundle-version="3.15.0",
  org.eclipse.core.runtime;bundle-version="3.15.100",
  org.eclipse.core.resources;bundle-version="3.13.200",
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ org.eclipse.jface.text;bundle-version="3.15.0",
+ org.eclipse.swt
+Bundle-Activator: kr.ac.uos.ai.editor.jamEditor.JamEditorPlugin
+Bundle-ActivationPolicy: lazy

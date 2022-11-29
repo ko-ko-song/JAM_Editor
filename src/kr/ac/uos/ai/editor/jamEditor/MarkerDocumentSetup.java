@@ -16,6 +16,8 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 
+import kr.ac.uos.ai.editor.jamEditor.util.Util;
+
 public class MarkerDocumentSetup implements IDocumentSetupParticipant{
 
 	private static final String TODO_PROPERTY = "todoProperty";
@@ -55,20 +57,20 @@ public class MarkerDocumentSetup implements IDocumentSetupParticipant{
 	private void createMarker(DocumentEvent event, IResource adapter) throws CoreException {
 		String docText = event.getDocument().get();
 
-        for (String todoProperty : PlanPropertiesContentAssistProcessor.PALNINNERPROPOSALS) {
-            List<IMarker> markers = Arrays.asList(adapter.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE));
-            Optional<IMarker> findAny = markers.stream()
-                    .filter(m -> todoProperty.equals(m.getAttribute(TODO_PROPERTY, ""))).findAny();
-            if (docText.contains(todoProperty) && findAny.isPresent()) {
-                findAny.get().delete();
-            } else if (!docText.contains(todoProperty) && !findAny.isPresent()) {
-                IMarker marker = adapter.createMarker(IMarker.PROBLEM);
-                marker.setAttribute(IMarker.MESSAGE, todoProperty + " property is not set");
-                marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
-                marker.setAttribute(IMarker.LOCATION, "Missing line");
-                marker.setAttribute(TODO_PROPERTY, todoProperty);
-            }
-        }
+//        for (String todoProperty : PlanPropertiesContentAssistProcessor.PALNINNERPROPOSALS) {
+//            List<IMarker> markers = Arrays.asList(adapter.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE));
+//            Optional<IMarker> findAny = markers.stream()
+//                    .filter(m -> todoProperty.equals(m.getAttribute(TODO_PROPERTY, ""))).findAny();
+//            if (docText.contains(todoProperty) && findAny.isPresent()) {
+//                findAny.get().delete();
+//            } else if (!docText.contains(todoProperty) && !findAny.isPresent()) {
+//                IMarker marker = adapter.createMarker(IMarker.PROBLEM);
+//                marker.setAttribute(IMarker.MESSAGE, todoProperty + " property is not set");
+//                marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_INFO);
+//                marker.setAttribute(IMarker.LOCATION, "Missing line");
+//                marker.setAttribute(TODO_PROPERTY, todoProperty);
+//            }
+//        }
 	}
 
 }
