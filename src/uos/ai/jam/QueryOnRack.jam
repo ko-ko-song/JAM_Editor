@@ -1,0 +1,16 @@
+
+Plan Perform QueryOnRack($cargo,$rack){
+	ID: "http://www.arbi.com//queryOnRack"
+	PRECONDITION:
+		FACT Communication($communicationInstance);
+		FACT ExtraUtility($helper);
+		FACT isro:ContextManagerAddress($address);
+		FACT GLUtility($glUtility);
+		
+	BODY:
+		$queryResult = $communicationInstance.sendQuery($address, "(context (OnRack \"" + $cargo+ "\" $rack))");
+		$context = $glUtility.retrieveGLExpression($queryResult, 0);
+		//System.out.println($context);
+		$rack = $glUtility.retrieveGLExpression($context,1);
+	UTILITY: 10; 
+}

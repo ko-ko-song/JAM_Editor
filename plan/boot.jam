@@ -32,7 +32,7 @@ PLAN PERFORM boot($test, $test2){
 
 		
 		perform boot($test,$test2);
-		ACHIEVE MeetingInformationConfirmed($meetingID);
+		ACHIEVE MeetingInformationConfirmed($meetingID)
 		PERFORM loadPlanPackage();
 		
 		System.out.println("---Load Complete---");
@@ -45,17 +45,18 @@ PLAN PERFORM boot($test, $test2){
 
 
 PLAN PERFORM boot($x, $y){
-	ID: "boot2"
-	BODY:
+	ID: "boot"
 		
+	BODY:
 		System.out.println("---Start Jam---");
 		System.out.println("---Load plans---");
 		perform test();
 		
 		//$helper.loadPlan("plan/planList.jam");
 		
-		
+		achieve test($x, $y);
 		PERFORM loadPlanPackage();
+		assert state();
 		
 		System.out.println("---Load Complete---");
 		
@@ -73,6 +74,8 @@ PLAN PERFORM test2($a, $c, $b){
 		System.out.println("test");
 		
 	PRECONDITION:
+		fact state();
+
 	CONTEXT:
 		
 		
@@ -80,7 +83,10 @@ PLAN PERFORM test2($a, $c, $b){
 
 plan perform test($x,$y){
 	id : "test2"
-	
+
+	precondition:
+		fact test($a, $b, $c);	
+
 	body:
 		
 		System.out.println("test");

@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import uos.ai.jam.Prefix;
+
 public class PrefixManager {
 
 	private final Map<String, Prefix> prefixes;
@@ -65,7 +67,7 @@ public class PrefixManager {
 			return null;
 		}
 			
-		return prefixes.get(prefixName).get_value();
+		return prefixes.get(prefixName).getValue();
 	}
 	
 
@@ -83,7 +85,7 @@ public class PrefixManager {
 		for (Prefix prefix : getAllPrefixes()) {
 			String prefixName = prefix.getPrefix();
 
-			sbFormat.append(String.format("%-10s %-60s %s %-20s %s %s ", prefixName, prefix.get_value(), "file name : ", prefix.get_fileName(), "line : ", prefix.get_line()));
+			sbFormat.append(String.format("%-10s %-60s %s %-20s %s %s ", prefixName, prefix.getValue(), "file name : ", prefix.get_fileName(), "line : ", prefix.get_line()));
 			sbFormat.append("\n");
 		}
 		

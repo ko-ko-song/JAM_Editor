@@ -6,6 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import uos.ai.jam.expression.Relation;
+import uos.ai.jam.plan.Plan;
+
 public class RelationTable {
 
 	private final Map<String, List<Relation>> relationTable; 
@@ -64,47 +67,37 @@ public class RelationTable {
 		
 		List<Relation> relations = relationTable.get(relation.getName());
 		List<Relation> relationsFromFile = fileByRelationTable.get(relation.get_fileName());
-		if(relations != null) {
-			for (Relation rel : relations) {
-				if(rel.getArgs().length == relation.getArgs().length) {
-					for(int i=0; i<rel.getArgs().length; i++) {
-						if(!rel.getArgs()[i].equals(relation.getArgs()[i])) {
-							break;
-						}
-					}
-					relations.remove(rel);
-					if(relationsFromFile != null)
-						relationsFromFile.remove(rel);
-					
-					return;
-				}
-			}	
-		}
+		if(relations != null) 
+			relations.remove(relation);
+			
+		if(relationsFromFile != null) 
+			relationsFromFile.remove(relation);
+
 	}
+	
+	
+	
 	
 	public void printAllRelations() {
 		StringBuilder sb = new StringBuilder();
 		StringBuilder sbFormat = new StringBuilder();
 		sbFormat.append("relation List------------------------------------------------------------------------------------ \n");
 		for (Relation relation : getAllRelations()) {
-			String relationName = relation.getName();
-			String[] args = relation.getArgs();
-			sb.setLength(0);
-			sb.append(relationName);
-			sb.append("(");
-			if(args.length != 0) {
-				for (String arg : args) {
-					sb.append(arg);
-					sb.append(", ");
-				}
-				int length = sb.length();
-				sb.delete(length -2, length );
-			}
-			sb.append(")");
-			sbFormat.append(String.format("%-60s %s %-30s %s %s", sb.toString(), "file name : ", relation.get_fileName(), "line : ", relation.get_line()));
+			
+			sbFormat.append(String.format("%-60s %s %-30s %s %s", relation.toString(), "file name : ", relation.get_fileName(), "line : ", relation.get_line()));
 			sbFormat.append("\n");
 		}
 		
 		System.out.println(sbFormat.toString());
+	}
+	
+	public boolean isExist(Relation relation) {
+		for (Relation r: this.getAllRelations()) {
+			if(r.getName().equals(relation.getName())){
+				if(r.getArity() == relation.getArity())
+					return true;
+			}
+		}
+		return false;
 	}
 }

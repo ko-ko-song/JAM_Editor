@@ -6,7 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import kr.ac.uos.ai.editor.jam.action.GoalAction;
+import uos.ai.jam.expression.Relation;
+import uos.ai.jam.plan.Plan; 
 
 public class PlanTable {
 	
@@ -24,29 +25,34 @@ public class PlanTable {
 			
 		if(!this.planIDCheck(plan)) 
 			return false;
+		String goalName = "";
 		
-		if(plan.getGoalAction() != null) {
-			String goalName = plan.getGoalAction().getName();
-			List<Plan> plans = goalNameByPlanTable.get(goalName);
-			if(plans == null) {
-				plans = new LinkedList<Plan>();
-				goalNameByPlanTable.put(goalName, plans);
-			}
-			plans.add(plan);
+		if(plan.getGoalSpecification() != null) {
+			goalName = plan.getGoalSpecification().getRelation().getName();
 			
-			String fileName = plan.get_fileName();
-			List<Plan> plansFromFile = fileByPlanTable.get(fileName);
-			if(plansFromFile == null) {
-				plansFromFile = new LinkedList<Plan>();
-				fileByPlanTable.put(fileName, plansFromFile);
-			}
-			plansFromFile.add(plan);
-			
-			return true;
-		}else {
+		}else if(plan.getConcludeSpecification()!= null) {
+			goalName = plan.getConcludeSpecification().getName();
+		}
+		else {
 			System.out.println("goal action is undefined");
 			return false;
 		}
+		
+		List<Plan> plans = goalNameByPlanTable.get(goalName);
+		if(plans == null) {
+			plans = new LinkedList<Plan>();
+			goalNameByPlanTable.put(goalName, plans);
+		}
+		plans.add(plan);
+		
+		String fileName = plan.get_fileName();
+		List<Plan> plansFromFile = fileByPlanTable.get(fileName);
+		if(plansFromFile == null) {
+			plansFromFile = new LinkedList<Plan>();
+			fileByPlanTable.put(fileName, plansFromFile);
+		}
+		plansFromFile.add(plan);
+		return true;
 	}
 
 	private boolean planIDCheck(Plan plan) {
@@ -140,7 +146,19 @@ public class PlanTable {
 	 * @param plan
 	 */
 	public void removePlan(Plan plan) {
-		List<Plan> plans = goalNameByPlanTable.get(plan.getGoalAction().getName());
+		String goalName = "";
+		if(plan.getGoalSpecification()!=null) {
+			goalName = plan.getGoalSpecification().getRelation().getName();
+		}
+		else if(plan.getConcludeSpecification() != null) {
+			goalName = plan.getGoalSpecification().getRelation().getName();
+		}
+		
+		if(goalName.equals("")) {
+			return;
+		}
+		
+		List<Plan> plans = goalNameByPlanTable.get(plan.getGoalSpecification().getName());
 		if(plans != null)
 			plans.remove(plan);
 		
@@ -155,27 +173,33 @@ public class PlanTable {
 		sbFormat.append("plan List---------------------------------------------------------------------------------------- \n");
 		for (Plan plan : getAllPlans()) {
 			sb.setLength(0);
-			String goalName = ((GoalAction)plan.getGoalAction()).getRelation().getName();
-			String[] args = ((GoalAction)plan.getGoalAction()).getRelation().getArgs();
-			
-			sb.append(goalName);
-			sb.append("(");
-			for (String arg : args) {
-				sb.append(arg);
-				sb.append(", ");
+			if(plan.getGoalSpecification() != null) {
+				sb.append(plan.getGoalSpecification().getRelation());
 			}
-			int length = sb.length();
-			sb.delete(length -2, length);
+			if(plan.getConcludeSpecification() != null) {
+				sb.append(plan.getConcludeSpecification());
+			}
 			
-			sb.append(")");
 			sbFormat.append(String.format("%-60s %s %-30s %s %s", sb.toString(), "file name : ", plan.get_fileName(), "line : ", plan.get_line()));
 			sbFormat.append("\n");
 		}
 		
 		System.out.println(sbFormat.toString());
 	}
-	
-	
-	
+
+	public boolean isExist(Relation relation) {
+		for (Plan plan : this.getAllPlans()) {
+			Relation r = plan.getGoalSpecification().getRelation();
+			
+			if(r == null)
+				r = plan.getConcludeSpecification();
+			
+			if(r.getName().equals(relation.getName())){
+				if(r.getArity() == relation.getArity())
+					return true;
+			}
+		}
+		return false;
+	}
 		
 }

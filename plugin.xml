@@ -27,7 +27,7 @@
    <extension
          point="org.eclipse.ui.genericeditor.contentAssistProcessors">
       <contentAssistProcessor
-            class="kr.ac.uos.ai.editor.jamEditor.PlanPropertiesContentAssistProcessor"
+            class="kr.ac.uos.ai.editor.jamEditor.PlanContentAssistProcessor"
             contentType="kr.ac.uos.ai.ide.jam">
       </contentAssistProcessor>
    </extension>
@@ -41,6 +41,13 @@
           name="Hyperlink to other tasks files"
           targetId="org.eclipse.ui.genericeditor.GenericEditor">
     </hyperlinkDetector>
+ </extension>
+ <extension
+       point="org.eclipse.core.filebuffers.documentSetup">
+    <participant
+          class="kr.ac.uos.ai.editor.jamEditor.MarkerDocumentSetup"
+          contentTypeId="kr.ac.uos.ai.ide.jam">
+    </participant>
  </extension>
 
 

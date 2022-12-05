@@ -1,0 +1,2216 @@
+options
+{
+	STATIC 					= false;
+	LOOKAHEAD 				= 1;
+	DEBUG_PARSER 			= false;
+	ERROR_REPORTING 		= true;
+	USER_TOKEN_MANAGER 		= false;
+	USER_CHAR_STREAM 		= false;
+	JAVA_UNICODE_ESCAPE 	= false;
+	UNICODE_INPUT 			= false;
+}
+
+
+PARSER_BEGIN(JAMParser)
+
+package uos.ai.jam.parser;
+
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.StringTokenizer;
+
+import uos.ai.jam.Interpreter;
+import uos.ai.jam.exception.AgentRuntimeException;
+import uos.ai.jam.exception.ExceptionManager;
+import uos.ai.jam.exception.GlobalCatch;
+import uos.ai.jam.expression.Expression;
+import uos.ai.jam.expression.FunctionCall;
+import uos.ai.jam.expression.ObjectCreation;
+import uos.ai.jam.expression.ObjectGetField;
+import uos.ai.jam.expression.ObjectInvokeMethod;
+import uos.ai.jam.expression.Relation;
+import uos.ai.jam.expression.SymbolTable;
+import uos.ai.jam.expression.Value;
+import uos.ai.jam.expression.Variable;
+import uos.ai.jam.expression.condition.Condition;
+import uos.ai.jam.expression.condition.ExpressionCondition;
+import uos.ai.jam.expression.condition.FactCondition;
+import uos.ai.jam.expression.condition.RetrieveCondition;
+import uos.ai.jam.plan.Plan;
+import uos.ai.jam.plan.PlanContext;
+import uos.ai.jam.plan.action.AchieveGoalAction;
+import uos.ai.jam.plan.action.Action;
+import uos.ai.jam.plan.action.AssertAction;
+import uos.ai.jam.plan.action.AssignAction;
+import uos.ai.jam.plan.action.FactAction;
+import uos.ai.jam.plan.action.FailAction;
+import uos.ai.jam.plan.action.GoalAction;
+import uos.ai.jam.plan.action.LoadPackageAction;
+import uos.ai.jam.plan.action.LoadFromURLAction;
+import uos.ai.jam.plan.action.MaintainGoalAction;
+import uos.ai.jam.plan.action.ObjectAction;
+import uos.ai.jam.plan.action.ObjectInvokeAction;
+import uos.ai.jam.plan.action.ParseAction;
+import uos.ai.jam.plan.action.PerformGoalAction;
+import uos.ai.jam.plan.action.PostAction;
+import uos.ai.jam.plan.action.QueryGoalAction;
+import uos.ai.jam.plan.action.RetractAction;
+import uos.ai.jam.plan.action.RetrieveAction;
+import uos.ai.jam.plan.action.SimpleAction;
+import uos.ai.jam.plan.action.TestAction;
+import uos.ai.jam.plan.action.ThrowAction;
+import uos.ai.jam.plan.action.UnpostAction;
+import uos.ai.jam.plan.action.UpdateAction;
+import uos.ai.jam.plan.constructor.PlanAtomicConstruct;
+import uos.ai.jam.plan.constructor.PlanBranchConstruct;
+import uos.ai.jam.plan.constructor.PlanConstruct;
+import uos.ai.jam.plan.constructor.PlanDoAllConstruct;
+import uos.ai.jam.plan.constructor.PlanDoAnyConstruct;
+import uos.ai.jam.plan.constructor.PlanDoConstruct;
+import uos.ai.jam.plan.constructor.PlanParallelConstruct;
+import uos.ai.jam.plan.constructor.PlanSequenceConstruct;
+import uos.ai.jam.plan.constructor.PlanSimpleConstruct;
+import uos.ai.jam.plan.constructor.PlanTryCatchConstruct;
+import uos.ai.jam.plan.constructor.PlanTryCatchEntry;
+import uos.ai.jam.plan.constructor.PlanWaitConstruct;
+import uos.ai.jam.plan.constructor.PlanWhenConstruct;
+import uos.ai.jam.plan.constructor.PlanWhileConstruct;
+import uos.ai.jam.util.ClassLoaderEX;
+import uos.ai.jam.Prefix;
+import uos.ai.jam.NameSpace;
+import uos.ai.jam.NameSpaceTable;
+import uos.ai.jam.WorldModelManager;
+
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
+
+import kr.ac.uos.ai.editor.jamEditor.ErrorInformation;
+
+public class JAMParser {
+	private ClassLoaderEX				_loader = new ClassLoaderEX();
+	//editor
+	public static String fileName = "";
+
+	/**
+	 * Command-line interface to parser to facilitate testing.
+	 */
+	public static void main(String args[]) {
+//		JAMParser parser;
+//		Interpreter interpreter = null;
+//
+//		System.out.println("JAM Parser Version 0.70: ");
+//
+//		if (args.length == 0) {
+//			System.out.println("Reading from standard input . . .");
+//			parser = new JAMParser(new java.io.DataInputStream(System.in));
+//		} else if (args.length == 1) {
+//			System.out.println("Reading from file " + args[0] + " . . .");
+//
+//			try {
+//				parser = new JAMParser(new java.io.DataInputStream(new java.io.FileInputStream(args[0])));
+//			} catch (java.io.FileNotFoundException e) {
+//				System.out.println("\n\nFile " + args[0] + " not found!\n\n");
+//				return;
+//			}
+//		} else {
+//			System.out.println("Usage is one of:");
+//			System.out.println("\t java JAMParser < inputfile");
+//			System.out.println("OR");
+//			System.out.println("\t java JAMParser inputfile");
+//			return;
+//		}
+//
+//		try {
+//			parser.ParseJamAgentDefinition(interpreter);
+//			System.out.println("JAM program parsed successfully.");
+//		} catch (ParseException e) {
+//			System.out.println("Encountered parsing exception " + e + " during parse.");
+//			e.printStackTrace();
+//		} catch (Exception e) {
+//			System.out.println("Encountered other exception " + e + " during parse.");
+//			e.printStackTrace();
+//		}
+	}
+
+	/**
+	 * Primary JAM interface to parser
+	 */
+	public static Interpreter buildInterpreter(String buf) {
+		JAMParser parser;
+		System.out.println("JAM Parser Version 0.70: ");
+		parser = new JAMParser(new ByteArrayInputStream(buf.getBytes()));
+
+		try {
+			Interpreter interpreter =	null;
+			interpreter = (Interpreter) parser.ParseJamAgentDefinition(interpreter);
+			System.out.println("JAM definition parse successful.");
+			return interpreter;
+		} catch (ParseException e) {
+			System.out.println("Encountered parse exception " + e + " during parse.");
+			e.printStackTrace();
+			return null;
+		} catch (Exception e) {
+			System.out.println("Encountered other exception " + e +  " during parse.");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Secondary JAM interface used to internalize agent constructs
+	 * from strings during execution.
+	 */
+	public static Interpreter parseString(Interpreter interpreter, String buf) {
+		JAMParser parser;
+		System.out.println("JAM Parser Version 0.70: ");
+		parser = new JAMParser(new ByteArrayInputStream(buf.getBytes()));
+
+		try {
+			interpreter = (Interpreter) parser.ParseJamAgentDefinition(interpreter);
+			System.out.println("JAM string parse successful.");
+			return interpreter;
+		} catch (ParseException e) {
+			System.out.println("Encountered parse exception " + e + " during parse.");
+			e.printStackTrace();
+			return null;
+		} catch (Exception e) {
+			System.out.println("Encountered other exception " + e + " during parse.");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static Interpreter parseFile(Interpreter interpreter, File file) {
+		if (file == null) return null;
+		String filename = null;
+		Reader reader = null;
+		try {
+		  filename = file.getCanonicalPath();
+		  reader = new FileReader(file);
+		} catch (IOException e) {
+		  e.printStackTrace();
+		  return null;
+		}
+
+		JAMParser parser;
+		System.out.println("JAM Parser Version 0.70: " + filename);
+		interpreter.getNameSpaceTable().clearPrefixMap();
+		parser = new JAMParser(reader);
+
+		try {
+			interpreter = (Interpreter) parser.ParseJamAgentDefinition(interpreter);
+			System.out.println("JAM string parse successful.");
+			return interpreter;
+		} catch (ParseException e) {
+			System.out.println("Encountered parse exception " + e + " during parse.");
+			e.printStackTrace();
+			return null;
+		} catch (Exception e) {
+			System.out.println("Encountered other exception " + e + " during parse.");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+//editor
+	public static Interpreter parseFile(Interpreter interpreter, String fileFullpath){
+	  IPath path = new Path(fileFullpath);
+	  IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+	  if(file.getFileExtension() == null)
+	  	return null;
+	    
+	  return (Interpreter)JAMParser.parseFile(interpreter, file);
+	}
+	
+	public static Interpreter parseFile(Interpreter interpreter, IFile file) {
+	  	if(interpreter == null)
+	  		interpreter = new Interpreter();
+		if (file == null) return null;
+		InputStream is = null;
+//		System.out.println("parse file " + file);
+		
+		fileName = file.getFullPath().toString();
+		
+		try {
+		  is = file.getContents();
+		} catch (CoreException e) {
+//		  e.printStackTrace();
+		  return null;
+		}
+	
+		JAMParser parser;
+	//		System.out.println("JAM Parser Version 0.70: " + fileName);
+	//		interpreter.getNameSpaceTable().clearPrefixMap();
+		parser = new JAMParser(is);
+	
+		try {
+		  	Interpreter interpreter2 = (Interpreter)parser.ParseJamAgentDefinition(interpreter);
+		  	if(interpreter != null)
+		  		System.out.println("JAM parser : " + fileName+ " JAM File parse successful."); 
+
+			else
+				System.out.println("JAM parser : " + fileName+ " JAM File parse fail.");
+		  	
+			return interpreter2;
+			 
+		} catch (ParseException e) {
+       		System.out.println("Encountered parse exception " + e + " during parse.");
+//			e.printStackTrace();
+			return null;
+		} catch (Exception e) {
+			System.out.println("Encountered other exception " + e + " during parse.");
+//			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static ErrorInformation parseStringForErrorDetection(Interpreter interpreter, String buf) {
+		JAMParser parser;
+		if(interpreter == null)
+	  		interpreter = new Interpreter();
+
+		parser = new JAMParser(new ByteArrayInputStream(buf.getBytes()));
+	
+		try {
+			interpreter = (Interpreter) parser.ParseJamAgentDefinition(interpreter);
+			System.out.println("parseStringForErrorDetection : JAM string parse successful.");
+			return null;
+		} catch (ParseException e) {
+			ErrorInformation info = new ErrorInformation();
+			System.out.println("expected token sequence : ------  " + e.expectedTokenSequences);
+			info.setExpectedTokens(e.expectedTokenSequences);
+			info.setTokenImage(e.tokenImage);
+			info.setCurrentToken(parser.token);
+			info.setNextToken(parser.token.next);
+			
+			return info;
+		} catch (Exception e) {
+			System.out.println(" ----------------------------- exception");
+//			e.printStackTrace();
+			return null;
+		}
+	}
+	
+//
+
+                     
+
+
+
+
+
+
+
+
+	
+}
+
+PARSER_END(JAMParser)
+
+/* WHITE SPACE */
+
+SPECIAL_TOKEN : {
+	<WS: ([" ", "\t", "\n", "\r", "\f"])+ >
+}
+
+/* COMMENTS */
+
+MORE : {
+	"//" :			 IN_SINGLE_LINE_COMMENT
+|	<"/**" ~["/"]>	{ input_stream.backup(1); } : IN_FORMAL_COMMENT
+|	"/*" :			 IN_MULTI_LINE_COMMENT
+}
+
+<IN_SINGLE_LINE_COMMENT>
+SPECIAL_TOKEN : {
+	<SINGLE_LINE_COMMENT: "\n" | "\r" | "\r\n" > : DEFAULT
+}
+
+<IN_FORMAL_COMMENT>
+SPECIAL_TOKEN : {
+	<FORMAL_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_MULTI_LINE_COMMENT>
+SPECIAL_TOKEN : {
+	<MULTI_LINE_COMMENT: "*/" > : DEFAULT
+}
+
+<IN_SINGLE_LINE_COMMENT,IN_FORMAL_COMMENT,IN_MULTI_LINE_COMMENT>
+MORE : {
+	< ~[] >
+}
+
+
+/* STRING */
+
+//	TOKEN :
+//	{
+//	< STRING:		"\"" ( ~["\"","\n"] | "\"\"" | "\\\"" )* "\"" >
+//	}
+
+SKIP: {
+	 "\"" : IN_STRING
+}
+ 
+<IN_STRING>
+TOKEN : {
+	< STRING : "\"" > 
+	{
+		image.setLength(image.length() - 1);
+		matchedToken.image = image.toString();
+	} : DEFAULT 
+}
+ 
+<IN_STRING>
+MORE :
+{
+	"\\\""	{ image.setLength(image.length() - 2); image.append("\""); }
+|	"\\t"	{ image.setLength(image.length() - 2); image.append("\t"); }
+|	"\\n"	{ image.setLength(image.length() - 2); image.append("\n"); }
+|	"\\r"	{ image.setLength(image.length() - 2); image.append("\r"); }
+|	"\\f"	{ image.setLength(image.length() - 2); image.append("\f"); }
+|	< ~[] >	// Note that here you don't need any action.
+}
+
+
+TOKEN : {
+	< #ws:		( [" ","\t","\n","\r"] )+ >
+|	< #delim:	[" ","\t","\n","\r"] >
+|	< #letter:	( ["-","_","A"-"Z","a"-"z"] ) >
+|	< #digit:	["0"-"9"] >
+|	< #charac:	( "'" ~["'","\n"] "'") | ( "''''" ) >
+|	< #EXP:		["e","E"] ( ["+","-"] )? ( <digit> )+ >
+|	< #SIGN :	["-","+"] >
+|	< #number0:	( <SIGN> )? ( <digit> )+ >
+|	< #number1:	( <SIGN> )? ( <digit> )+ "." ( <digit> )* ( <EXP> )?	>
+|	< #number2:	( <SIGN> )? "." ( <digit> )+ ( <EXP> )?	 >
+|	< #hexa0:	"0x" ( ["0"-"9","a"-"f"] )+ >
+}
+
+TOKEN [IGNORE_CASE] : {
+	< IMPORT_DECL:			"import" >
+|	< GOAL_DECL:			"GOALS" ( <delim> )* ":" >
+|	< FACT_DECL:			"FACTS" ( <delim> )* ":" >
+|	< OBSERVER_DECL:		"OBSERVER" ( <delim> )* ":" >
+|   < PREFIX_DECL:			"PREFIXES" ( <delim> )* ":" >
+|   < PREFIX:				"PREFIX" >
+
+//|	< PLAN_START:			"Plan" ( <delim> )* ":" >
+|	< PLAN_START:			"plan" >
+
+|	< PLAN_NAME:			"NAME" ( <delim> )* ":" >
+|	< PLAN_ID:				"ID" ( <delim> )* ":" >
+|	< PLAN_DOC:				"DOCUMENTATION" ( <delim> )* ":" >
+|	< PLAN_GOALSPEC:		"GOAL" ( <delim> )* ":" >
+//|	< PLAN_CONCLUDESPEC:	"CONCLUDE" ( <delim> )* ":" >
+|	< PLAN_CONCLUDESPEC:	"CONCLUDE" >
+|	< PLAN_CONTEXT:			"CONTEXT" ( <delim> )* ":" >
+|	< PLAN_PRECONDITION:	"PRECONDITION" ( <delim> )* ":" >
+|	< PLAN_UTILITY:			"UTILITY" ( <delim> )* ":" >
+|	< PLAN_EFFECTS:			"EFFECTS" ( <delim> )* ":"	>
+|	< PLAN_FAILURE:			"FAILURE" ( <delim> )* ":" >
+|	< PLAN_ATTRIBUTES:		"ATTRIBUTES" ( <delim> )* ":" >
+|	< PLAN_BODY:			"BODY" ( <delim> )* ":" >
+}
+
+TOKEN [IGNORE_CASE] : {
+	< PLAN_BODY_AND:		"AND" >
+|	< PLAN_BODY_OR:			"OR" >
+|	< PLAN_BODY_PARALLEL:	"PARALLEL" >
+|	< PLAN_BODY_DO_ALL:		"DO_ALL" >
+|	< PLAN_BODY_DO_ANY:		"DO_ANY" >
+|	< PLAN_BODY_DO:			"DO" >
+|	< PLAN_BODY_WHILE:		"WHILE" >
+|	< PLAN_BODY_WHEN:		"WHEN" >
+|	< PLAN_BODY_ATOMIC:		"ATOMIC" >
+|	< PLAN_BODY_WAIT:		"WAIT" >
+|	< IF:					"IF" >
+|	< ELSE:					"ELSE" >
+| 	< FOR:					"FOR" >
+|	< KEYWORD_UTILITY:		":UTILITY" >
+|	< KEYWORD_BY:			":BY" >
+|	< KEYWORD_NOT_BY:		":NOT-BY" >
+|	< EXECUTE:				"EXECUTE" >
+|	< LOAD_PACKAGE:			"LOAD_PACKAGE" >
+|	< LOAD_FROM_URL:		"LOAD_FROM_URL" >
+|	< PARSE:				"PARSE" >
+|	< FACT:					"FACT" >
+|	< RETRIEVE:				"RETRIEVE" >
+|	< IS_TRUE:				"IS_TRUE" >
+|	< POST:					"POST" >
+|	< UNPOST:				"UNPOST" >
+|	< ACHIEVE:				"ACHIEVE" >
+|	< PERFORM:				"PERFORM" >
+|	< MAINTAIN:				"MAINTAIN" >
+|	< QUERY:				"QUERY" >
+|	< ASSERT:				"ASSERT" >
+|	< FAIL:					"FAIL" >
+|	< RETRACT:				"RETRACT" >
+|	< UPDATE:				"UPDATE" >
+|	< TRY:					"TRY" >
+|	< CATCH:				"CATCH" >
+|	< THROW:				"THROW" >
+|	< NEW:					"NEW" >
+}
+
+TOKEN : {
+
+ 	< LPAREN: 				"(" >
+| 	< RPAREN: 				")" >
+| 	< LBRACE: 				"{" >
+| 	< RBRACE: 				"}" >
+| 	< LBRACKET: 			"[" >
+| 	< RBRACKET: 			"]" >
+
+| 	< ASSIGN: 				"=" >
+| 	< GT: 					">" >
+| 	< LT: 					"<" >
+| 	< BANG: 				"!" >
+| 	< EQ: 					"==" >
+| 	< LE: 					"<=" >
+| 	< GE: 					">=" >
+| 	< NE: 					"!=" >	
+| 	< SC_OR: 				"||" >
+| 	< SC_AND: 				"&&" >
+| 	< INCR: 				"++" >
+| 	< DECR: 				"--" >
+| 	< PLUS: 				"+" >
+| 	< MINUS: 				"-" >
+| 	< STAR: 				"*" >
+| 	< SLASH: 				"/" >
+
+|	< INTEGER:				<number0> >
+|	< FLOAT:				( <number1> | <number2> )+ >
+|	< ADDRESS:				<hexa0> >
+|	< VARIABLE:				"$" ( <letter> | <digit> )* >
+| 	< IDENTIFIER: 			["_","A"-"Z","a"-"z"] ( <letter> | <digit> )* >
+| 	< CLASS_IDENTIFIER: 	<IDENTIFIER> ( "." <IDENTIFIER> )+ >
+|  	< PROTOCOLTYPE:			("http://"|"tcp://"|"https://")+ >
+| 	< SLASH_END_IDENTIFIER: ( <letter> | <digit> )+ ((["."] (<letter>|<digit>)+ )* ["/"])+ >
+| 	< HASH_END_IDENTIFIER: ( <letter> | <digit> )+ ((["."] (<letter>|<digit>)+ )* ["/"])* ((<letter>|<digit>)+ ["#"])+ >
+|   < OWL_NAMESPACE_IDENTIFIER:		(<CLASS_IDENTIFIER> ["/"] | <CLASS_IDENTIFIER> ["#"] )+ >
+
+}
+
+//
+//
+//
+
+Object ParseJamAgentDefinition(Interpreter interpreter) :
+{
+	if (interpreter == null) interpreter = new Interpreter();
+}
+{
+	( import_statement() )* agent_components(interpreter) 
+	{
+		return interpreter;
+	}
+}
+
+void import_statement() :
+{
+	Token t = null;
+	boolean isPackage = false;
+}
+{
+	<IMPORT_DECL> ( t = <CLASS_IDENTIFIER> | t = <IDENTIFIER> ) [ "." "*" { isPackage = true; } ] ";"
+	{
+		if (isPackage) {
+			_loader.importPackage(t.image);
+		} else {
+			_loader.importClass(t.image);
+		}
+	}
+}
+
+/**********************************************************************/
+/**                                                                  **/
+/**	Agent Components                                                 **/
+/**                                                                  **/
+/**********************************************************************/
+
+void agent_components(Interpreter interpreter) :
+{
+	Plan plan = null;
+}
+{
+	// Allow arbitrary interleaving of Goals, Plans, Facts, and Observer
+	(
+		<GOAL_DECL>		( goal(interpreter) )*
+	|	<FACT_DECL>		( fact(interpreter) )*
+	|   <PREFIX_DECL>	( prefix(interpreter) )* // @mod
+//	|	<PLAN_START>	( plan(interpreter) )*
+	|	<OBSERVER_DECL>
+	 	(
+	 		{
+		 		Plan currentPlan = new Plan();
+		 		PlanSequenceConstruct body_elements = null;
+	 		}
+			"{" body_elements = plan_construct_sequence(currentPlan.getSymbolTable(), interpreter) "}"
+			{
+				currentPlan.setBody(body_elements);
+				interpreter.setObserver(currentPlan);
+			}
+		)*
+	|	<CATCH> globalCatch(interpreter)
+	| 	plan = plan(interpreter) { interpreter.getPlanLibrary().add(plan); }
+	)+
+}
+
+void prefix(Interpreter interpreter) :
+{
+	Prefix prefix = null;
+	Token protocol_type = null;
+	Token name = null;
+	NameSpace name_space = null;
+}
+{	  prefix = prefix_owl(null, interpreter) "<" protocol_type = <PROTOCOLTYPE>  name = namespace() ">" ";"
+	{
+	  	name_space = new NameSpace(protocol_type.image + name.image);
+
+	  	//editor
+	  	prefix.setValue(new String(protocol_type.image + name.image));
+	  	
+		interpreter.getNameSpaceTable().addPrefix(prefix,name_space);
+		interpreter.getNameSpaceTable().addPrefix(prefix);
+	}
+}
+
+void auto_prefix(Interpreter interpreter) :
+{
+	Prefix auto_prefix = null;
+}
+{
+	auto_prefix = prefix_owl(null,interpreter) ";"
+	{
+
+	}
+}
+
+Prefix prefix_owl(SymbolTable symbol_table, Interpreter interpreter) :
+{
+  Token id;
+  Token traceToken;
+}
+{
+	traceToken = <PREFIX> id = <IDENTIFIER> ":"
+	{
+	  Prefix prefix = new Prefix(id.image);
+	  prefix.set_fileName(fileName);
+	  prefix.set_line(traceToken.beginLine);
+	  return prefix;
+	}
+}
+
+
+	
+/**********************************************************************/
+/**                                                                  **/
+/**	GOAL                                                             **/
+/**                                                                  **/
+/**********************************************************************/
+	
+void goal(Interpreter interpreter) :
+{
+	GoalAction goal = null;
+}
+{
+	goal=goal_action(null, interpreter) ";"
+	{
+		try {
+			interpreter.getIntentionStructure().addUnique(goal, null, null);
+		} catch (AgentRuntimeException e) {}
+	}
+}
+
+/**********************************************************************/
+/**                                                                  **/
+/**	FACT                                                             **/
+/**                                                                  **/
+/**********************************************************************/
+	
+void fact(Interpreter interpreter) :
+{
+	Relation relation = null;
+}
+{
+	<FACT> relation=relation(null, interpreter) ";"
+	{
+		interpreter.getWorldModel().assertFact(relation, null);
+	}
+}
+
+/**********************************************************************/
+/**                                                                  **/
+/**	Global Catch                                                     **/
+/**                                                                  **/
+/**********************************************************************/
+	
+void globalCatch(Interpreter interpreter) :
+{
+	Token en = null;;
+	Variable variable = null;
+	SymbolTable symbolTable = new SymbolTable();
+	PlanConstruct catchConstruct = null;
+	Plan currentPlan = new Plan();
+}
+{
+	"(" variable = variable(symbolTable) ":" en = <CLASS_IDENTIFIER> ")" 
+	catchConstruct=plan_construct_sequence_block(symbolTable, interpreter)
+	{
+		ExceptionManager em = interpreter.getExceptionManager();
+		em.addGlobalCatch(new GlobalCatch(new String(en.image), variable, catchConstruct));
+	}
+}
+
+/**********************************************************************/
+/**                                                                  **/
+/**	PLAN                                                             **/
+/**                                                                  **/
+/**********************************************************************/
+
+Plan plan(Interpreter interpreter) :
+{
+	Plan plan = new Plan();
+	Relation relation = null;
+	GoalAction goalAction = null;
+	Token traceToken = null;
+}
+{
+	traceToken = <PLAN_START> ( ( <PLAN_CONCLUDESPEC> relation = relation(plan.getSymbolTable(), interpreter) ) | goalAction = goal_action(plan.getSymbolTable(), interpreter) ) 
+	"{"
+		plan_components(plan, interpreter)	
+	"}"
+	{
+	    plan.set_fileName(fileName);
+	    plan.set_line(traceToken.beginLine);
+		plan.setGoalSpecification(goalAction);
+		plan.setConcludeSpecification(relation);
+		return plan; 
+	}
+}
+
+/*	
+void plan(Interpreter interpreter) :
+{}
+{ 
+	{
+		Plan currentPlan = new Plan();
+	}
+	"{" plan_components(currentPlan, interpreter) "}"
+	{
+		interpreter.getPlanLibrary().add(currentPlan);
+	}
+} 
+*/
+	
+void plan_components(Plan currentPlan, Interpreter interpreter) :
+{}
+{ 
+	plan_component(currentPlan, interpreter) ( plan_component(currentPlan, interpreter) )*
+} 
+	
+void plan_component(Plan currentPlan, Interpreter interpreter) :
+{}
+{ 
+	plan_id(currentPlan, interpreter)
+| 	plan_name(currentPlan, interpreter)
+|	plan_doc(currentPlan)
+//|	plan_goalspec(currentPlan, interpreter)
+//|	plan_concludespec(currentPlan, interpreter)
+|	plan_context(currentPlan, interpreter)
+|	plan_precondition(currentPlan, interpreter)
+|	plan_utility(currentPlan, interpreter)
+|	plan_effects(currentPlan, interpreter)
+|	plan_failure(currentPlan, interpreter)
+|	plan_attributes(currentPlan)
+|	plan_body(currentPlan, interpreter)
+} 
+	
+	
+/**********************************************************************/
+/** ID                                                             **/
+/** Name                                                             **/
+/** Doc                                                              **/
+/** Attributes                                                       **/
+/**********************************************************************/
+void plan_id(Plan currentPlan, Interpreter interpreter) : 
+{
+  	Prefix prefix = null;
+  	NameSpace ns = null;
+	Token t_s = null;
+}
+{ 
+	<PLAN_ID> (prefix = prefix_owl(null,interpreter))* [ t_s=<STRING> ]
+		{
+			if (t_s != null&&prefix==null) { 
+				currentPlan.setId(t_s.image);
+			}else if(prefix!=null&&t_s!=null) {// prefix.getPrefix should be changed as prefix by changing method to get name space with prefix 
+			  	currentPlan.setId(interpreter.getNameSpaceTable().getNameSpace(prefix.getPrefix()).wrap(t_s.image));
+			}
+		}
+} 
+void plan_name(Plan currentPlan, Interpreter interpreter) :  ///// @mod
+{
+  	Prefix prefix = null;
+  	NameSpace ns = null;
+	Token t_s = null;
+}
+{ 
+	<PLAN_NAME> (prefix = prefix_owl(null,interpreter))* [ t_s=<STRING> ]
+		{
+			if (t_s != null&&prefix==null) { 
+				currentPlan.setName(t_s.image);
+			}else if(prefix!=null&&t_s!=null) {// prefix.getPrefix should be changed as prefix by changing method to get name space with prefix 
+			  	currentPlan.setName(interpreter.getNameSpaceTable().getNameSpace(prefix.getPrefix()).wrap(t_s.image));
+			}
+		}
+} 
+	
+	
+void plan_doc(Plan currentPlan) :
+{
+	Token t_s = null;
+}
+{ 
+	<PLAN_DOC> [ t_s=<STRING> ]
+		{
+			if (t_s != null)
+	currentPlan.setDocumentation(t_s.image);
+		}
+}
+	
+	
+void plan_attributes(Plan currentPlan) :
+{
+	Token t_s = null;
+}
+{ 
+	<PLAN_ATTRIBUTES> [ t_s=<STRING> ]
+		{
+			if (t_s != null)
+	currentPlan.setAttributes(t_s.image);
+		}
+}
+	
+	
+/**********************/
+/* Goal Specification */
+/**********************/
+	
+void plan_goalspec(Plan currentPlan, Interpreter interpreter) :
+{
+	Relation rel = null;
+	Action ga = null;
+}
+{ 
+ <PLAN_GOALSPEC> [ ga=goal_action(currentPlan.getSymbolTable(), interpreter) ";" ]
+	 {
+		 if (ga != null) {
+			 currentPlan.setGoalSpecification(ga);
+			 currentPlan.setConcludeSpecification(rel);
+		 }
+	 }
+} 
+	
+	
+/*******************************/
+/* Plan Conclude Specification */
+/*******************************/
+	
+void plan_concludespec(Plan currentPlan, Interpreter interpreter) :
+{
+	Action ga = null;
+	Relation rel = null;
+}
+{ 
+ <PLAN_CONCLUDESPEC> [ rel=relation(currentPlan.getSymbolTable(), interpreter) ";" ]
+	 {
+		 if (rel != null) {
+			 currentPlan.setConcludeSpecification(rel);
+			 currentPlan.setGoalSpecification(ga);
+		 }
+	 }
+} 
+	
+	
+/***********/
+/* Context */
+/***********/
+	
+void plan_context(Plan currentPlan, Interpreter interpreter) :
+{
+	List<Condition> c = null;
+}
+{ 
+ <PLAN_CONTEXT> [ c=condition_list(currentPlan.getSymbolTable(), interpreter) ]
+	 {
+		 if (c != null) {
+			 PlanContext context = new PlanContext(c);
+			 currentPlan.setContext(context);
+		 }
+	 }
+} 
+	
+	
+/***********/
+/* Context */
+/***********/
+	
+void plan_precondition(Plan currentPlan, Interpreter interpreter) :
+{
+	List<Condition> c = null;
+}
+{ 
+ <PLAN_PRECONDITION> [ c=condition_list(currentPlan.getSymbolTable(), interpreter) ]
+	 {
+		 if (c != null) {
+			 PlanContext precondition = new PlanContext(c);
+			 currentPlan.setPrecondition(precondition);
+		 }
+	 }
+} 
+	
+	
+/************/
+/* Utility */
+/************/
+
+void plan_utility(Plan currentPlan, Interpreter interpreter) :
+{
+	Expression e = null;
+}
+{ 
+	<PLAN_UTILITY> [ e=expression(currentPlan.getSymbolTable(), interpreter) ";" ]
+		{
+			if (e != null)
+	currentPlan.setUtility(e);
+		}
+} 
+
+	
+/*********************/
+/* Effects / Failure	*/
+/*********************/
+
+
+void plan_effects(Plan currentPlan, Interpreter interpreter) :
+{
+	PlanSequenceConstruct body_elements = null;
+	PlanAtomicConstruct atomic_element = null;
+}
+{ 
+	<PLAN_EFFECTS> [ body_elements=plan_construct_sequence(currentPlan.getSymbolTable(), interpreter) ]
+		{
+			if (body_elements != null)
+	{
+		atomic_element = new PlanAtomicConstruct(body_elements);
+		currentPlan.setEffects(atomic_element);
+	}
+		}
+}
+
+
+void plan_failure(Plan currentPlan, Interpreter interpreter) :
+{
+	PlanSequenceConstruct body_elements = null;
+	PlanAtomicConstruct atomic_element = null;
+}
+{ 
+	<PLAN_FAILURE> [ body_elements=plan_construct_sequence(currentPlan.getSymbolTable(), interpreter) ]
+		{
+			if (body_elements != null)
+	{
+		atomic_element = new PlanAtomicConstruct(body_elements);
+		currentPlan.setFailure(atomic_element);
+	}
+		}
+} 
+
+
+/***********/
+/* Body		 */
+/***********/
+
+void plan_body(Plan currentPlan, Interpreter interpreter) :
+{
+	PlanSequenceConstruct body_elements = null;
+}
+{
+	<PLAN_BODY> [ body_elements=plan_construct_sequence(currentPlan.getSymbolTable(), interpreter) ]
+	{
+		if (body_elements != null) currentPlan.setBody(body_elements);
+	}
+}
+
+PlanConstruct plan_construct(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanConstruct ct;
+}
+{
+	(
+		ct = plan_construct_execute_action(symbolTable, interpreter)
+		| ct = plan_construct_sequence_block(symbolTable, interpreter)
+		| ct = plan_construct_and(symbolTable, interpreter)
+		| ct = plan_construct_or(symbolTable, interpreter) 
+		| ct = plan_construct_parallel(symbolTable, interpreter)
+		| ct = plan_construct_do(symbolTable, interpreter) 
+	 	| ct = plan_construct_do_all(symbolTable, interpreter) 
+		| ct = plan_construct_do_any(symbolTable, interpreter) 
+		| ct = plan_construct_wait(symbolTable, interpreter)
+		| ct = plan_construct_if_then_else(symbolTable, interpreter)
+		| ct = plan_construct_when(symbolTable, interpreter) 
+		| ct = plan_construct_while(symbolTable, interpreter)
+		| ct = plan_construct_for(symbolTable, interpreter)
+		| ct = plan_construct_atomic(symbolTable, interpreter) 
+		| ct = plan_construct_try_catch(symbolTable, interpreter) 
+	)
+	{
+		return ct;
+	}
+}
+
+PlanConstruct plan_construct_execute_action(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Action a;
+}
+{
+	a=action(symbolTable, interpreter) ";"		
+	{
+		return new PlanSimpleConstruct(a);
+	}
+}
+
+PlanSequenceConstruct plan_construct_sequence_block(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanSequenceConstruct s;
+}
+{
+	"{" s=plan_construct_sequence(symbolTable, interpreter) "}"
+	{
+		return s;
+	}
+}
+
+PlanSequenceConstruct plan_construct_sequence(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanSequenceConstruct s = new PlanSequenceConstruct();
+	PlanConstruct ct;
+}
+{
+	ct=plan_construct(symbolTable, interpreter)	{ s.insertConstruct(ct); }
+	(
+		ct=plan_construct(symbolTable, interpreter)	{ s.insertConstruct(ct); }
+	)*
+	{
+		return s;
+	}
+}
+
+PlanConstruct plan_construct_and(SymbolTable symbolTable, Interpreter interpreter) : 
+{
+	PlanBranchConstruct construct;
+	PlanSequenceConstruct s;
+}
+{
+	<PLAN_BODY_AND> { construct = new PlanBranchConstruct(null, PlanBranchConstruct.PLAN_AND_BRANCH); }
+	s=plan_construct_sequence_block(symbolTable, interpreter)	{ construct.addBranch(s); }
+	(
+		s=plan_construct_sequence_block(symbolTable, interpreter)	{ construct.addBranch(s); }
+	)*
+	";"
+	{
+		return construct;
+	}
+}
+
+PlanConstruct plan_construct_or(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanBranchConstruct construct;
+	PlanSequenceConstruct s;
+}
+{
+	<PLAN_BODY_OR> { construct = new PlanBranchConstruct(null, PlanBranchConstruct.PLAN_OR_BRANCH); }
+	s=plan_construct_sequence_block(symbolTable, interpreter) { construct.addBranch(s); }
+	( 
+		s=plan_construct_sequence_block(symbolTable, interpreter) { construct.addBranch(s); }
+	)*
+ 	";"
+	{
+		return construct;
+	}
+}
+
+PlanConstruct plan_construct_parallel(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanParallelConstruct construct;
+	PlanSequenceConstruct s;
+}
+{
+ 	<PLAN_BODY_PARALLEL> { construct = new PlanParallelConstruct(); }
+	s=plan_construct_sequence_block(symbolTable, interpreter) { construct.insertConstruct(s); }
+	( 
+		s=plan_construct_sequence_block(symbolTable, interpreter) { construct.insertConstruct(s); }
+	)*
+ 	";"
+	{
+		return construct;
+	}
+}
+
+PlanConstruct plan_construct_do(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanDoConstruct construct;
+	PlanSequenceConstruct s;
+	Action a;
+}
+{
+	<PLAN_BODY_DO> s=plan_construct_sequence_block(symbolTable, interpreter) <PLAN_BODY_WHILE> ":" a=action(symbolTable, interpreter) ";"
+	{
+		construct = new PlanDoConstruct(a, s);
+		return construct;
+	}
+}
+
+PlanConstruct plan_construct_do_all(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanDoAllConstruct construct;
+	PlanSequenceConstruct s;
+}
+{
+	<PLAN_BODY_DO_ALL> { construct = new PlanDoAllConstruct(); }
+	s=plan_construct_sequence_block(symbolTable, interpreter)	{ construct.addBranch(s); }
+	(
+		s=plan_construct_sequence_block(symbolTable, interpreter)	{ construct.addBranch(s); }
+	)*
+	";"
+	{
+		return construct;
+	}
+}
+
+PlanConstruct plan_construct_do_any(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanDoAnyConstruct construct;
+	PlanSequenceConstruct s;
+}
+{
+	<PLAN_BODY_DO_ANY> { construct = new PlanDoAnyConstruct(); }
+	s=plan_construct_sequence_block(symbolTable, interpreter)	{ construct.addBranch(s); }
+	(
+		s=plan_construct_sequence_block(symbolTable, interpreter)	{ construct.addBranch(s); }
+	)*
+	";"
+	{
+		return construct;
+	}
+}
+
+PlanConstruct plan_construct_wait(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanConstruct c = null;
+	Action a = null;
+	Relation rel = null;
+}
+{
+	<PLAN_BODY_WAIT>
+	(
+		":" a=action(symbolTable, interpreter) ";" 		{ c = new PlanWaitConstruct(a); }
+		| rel=relation(symbolTable, interpreter) ";" 	{ c = new PlanWaitConstruct(rel); }
+	)
+	{
+		return c;
+	}
+}
+
+PlanConstruct plan_construct_when(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanWhenConstruct construct;
+	PlanSequenceConstruct s;
+	Action a;
+}
+{
+	<PLAN_BODY_WHEN> ":" a=action(symbolTable, interpreter) s=plan_construct_sequence_block(symbolTable, interpreter) ";"
+	{
+		construct = new PlanWhenConstruct(a, s);
+		return construct;
+	}
+}
+
+PlanConstruct plan_construct_if_then_else(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression e;
+	PlanConstruct s;
+	PlanConstruct s2 = null;
+}
+{
+	<IF> "(" e=expression(symbolTable, interpreter) ")" s=plan_construct(symbolTable, interpreter) 
+	[
+		LOOKAHEAD(1) <ELSE> s2=plan_construct(symbolTable, interpreter)
+	]
+	{ 
+		return new PlanWhenConstruct(new TestAction(e), s, s2);
+	}
+}
+
+PlanConstruct plan_construct_while(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanWhileConstruct construct;
+	PlanSequenceConstruct s;
+	Action a;
+}
+{
+	<PLAN_BODY_WHILE> ":" a=action(symbolTable, interpreter) s=plan_construct_sequence_block(symbolTable, interpreter) ";"
+	{
+		construct = new PlanWhileConstruct(a, s);
+		return construct;
+	}
+}
+
+PlanConstruct plan_construct_for(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Action s = null;
+	Action i = null;
+	Expression c = null;
+	PlanConstruct b = null;
+}
+{
+	<FOR> "(" ( s = action(symbolTable, interpreter) )? ";" ( c = expression(symbolTable, interpreter) )? ";" ( i = action(symbolTable, interpreter) )? ")" b = plan_construct(symbolTable, interpreter)
+	{
+		PlanSequenceConstruct forConstruct = new PlanSequenceConstruct();
+		forConstruct.insertConstruct(new PlanSimpleConstruct(s));
+		
+		PlanSequenceConstruct bodyConstruct = new PlanSequenceConstruct();
+		bodyConstruct.insertConstruct(b);
+		if (i != null) {
+			bodyConstruct.insertConstruct(new PlanSimpleConstruct(i));
+		}
+		if (c == null) {
+			c = Value.TRUE;
+		}
+		forConstruct.insertConstruct(new PlanWhileConstruct(new TestAction(c), bodyConstruct));
+		return forConstruct;
+	}
+}
+
+PlanConstruct plan_construct_atomic(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanAtomicConstruct construct;
+	PlanSequenceConstruct s;
+}
+{
+	<PLAN_BODY_ATOMIC> s=plan_construct_sequence_block(symbolTable, interpreter) ";"
+	{
+		construct = new PlanAtomicConstruct(s);
+		return construct;
+	}
+}
+
+PlanConstruct plan_construct_try_catch(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	PlanConstruct tryConstruct = null;
+	Variable variable = null;
+	String exceptionName = null;
+	Token token = null;
+	PlanConstruct catchConstruct = null;
+	List<PlanTryCatchEntry> list = new LinkedList<PlanTryCatchEntry>();
+}
+{
+	<TRY> tryConstruct=plan_construct_sequence_block(symbolTable, interpreter)
+	(
+		<CATCH> "(" variable=variable(symbolTable) ":" token=<CLASS_IDENTIFIER> ")"
+		catchConstruct=plan_construct_sequence_block(symbolTable, interpreter)
+		{
+			list.add(new PlanTryCatchEntry(new String(token.image), variable, catchConstruct));
+		}
+	)+
+	";"
+	{
+		return new PlanTryCatchConstruct(tryConstruct, list.toArray(PlanTryCatchEntry.NULL_ARRAY));
+	}
+}
+
+/**********************************************************************/
+/*											*/
+/*	Condition									*/
+/*											*/
+/**********************************************************************/
+
+List<Condition> condition_list(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	List<Condition> cl = new LinkedList<Condition>();
+	Condition c = null;
+}
+{
+	c=condition(symbolTable, interpreter)
+		{
+			cl.add(c);
+		}
+	( c=condition(symbolTable, interpreter)
+		{
+		cl.add(c);
+		}
+	)*
+		{
+			return cl;
+		}
+}
+
+Condition condition(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression e;
+	Relation relation;
+}
+{
+	e=expression(symbolTable, interpreter) ";"
+		{
+			return new ExpressionCondition(e);
+		}
+| <FACT> relation = relation(symbolTable, interpreter) ";"
+		{
+			return new FactCondition(relation, interpreter);
+		}
+| <RETRIEVE> relation = relation(symbolTable, interpreter) ";"
+		{
+			return new RetrieveCondition(relation, interpreter);
+		}
+}
+
+
+/**********************************************************************/
+/*											*/
+/*	Action										*/
+/*											*/
+/**********************************************************************/
+
+Action action(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Action a;
+}
+{
+	(
+		a=action_expression(symbolTable, interpreter)
+		| a=action_test(symbolTable, interpreter)
+		| a=action_execute(symbolTable, interpreter)
+		| a=action_fail()
+		| a=action_load_package(symbolTable, interpreter)
+		| a=action_load_from_url(symbolTable, interpreter)
+		| a=action_parse(symbolTable, interpreter)
+		| a=action_fact(symbolTable, interpreter)
+		| a=action_retrieve(symbolTable, interpreter)
+		| a=action_assert(symbolTable, interpreter)
+		| a=action_retract(symbolTable, interpreter)
+		| a=action_update(symbolTable, interpreter)
+		| a=action_post(symbolTable, interpreter)
+		| a=action_unpost(symbolTable, interpreter)
+		| a=goal_action(symbolTable, interpreter)
+		| a=throw_action(symbolTable, interpreter)
+	)
+	{
+		return a;
+	}
+}
+
+Action action_expression(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression expr1 = null;
+	Expression expr2 = null;
+	Action a = null;
+}
+{
+	expr1 = variable(symbolTable) ( <ASSIGN> expr2=expression(symbolTable, interpreter) | ( expr1 = obj_operation(expr1, symbolTable, interpreter) )+ )
+	{ 
+		if (expr2 != null) {
+			return new AssignAction(expr1, expr2);
+		} else {
+			return new ObjectInvokeAction(expr1);
+		}
+	}
+	| expr1 = cls_operation(symbolTable, interpreter) ( expr1 = obj_operation(expr1, symbolTable, interpreter) )*
+	{
+		return new ObjectInvokeAction(expr1);
+	}
+}
+
+/*
+Action action_assign(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression v;
+	Expression e;
+}
+{
+	v=variable(symbolTable) <ASSIGN> e=expression(symbolTable, interpreter)
+	{
+		return new AssignAction(v, e);
+	}
+}
+*/
+
+Action action_execute(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Token cls = null;
+	Token fn = null;
+	Variable v = null;
+	List<Expression> el = null;
+}
+{
+	<EXECUTE> ( cls=<CLASS_IDENTIFIER> | "`" fn=<IDENTIFIER> ) ("[" v=variable(symbolTable) "]")? el=object_arguments(symbolTable, interpreter)
+	{
+		if (cls != null || v != null) {
+
+			// Break down the class identifier into the class path and the function.
+			String fullIdentifier = null;
+			if (cls != null) {
+				fullIdentifier = new String(cls.image);
+			} else {
+				fullIdentifier = new String(fn.image);
+			}
+
+			//	System.out.println("fullIdentifier = " + fullIdentifier);
+			int lastDotIndex = fullIdentifier.lastIndexOf(".");
+			//	System.out.println("lastDotIndex = " + lastDotIndex);
+			String funcName = fullIdentifier.substring(lastDotIndex+1);
+			//	System.out.println("funcName = " + funcName);
+
+			String className = null;
+			if (lastDotIndex != -1) {
+				className = fullIdentifier.substring(0, lastDotIndex);
+			} else {
+				className = new String("");
+			}
+
+			//	System.out.println("className = " + className);
+			//	System.out.println("arg list = " + el + ", #args = " + el.getCount());
+
+			if (v != null) {
+				return new ObjectAction(className, funcName, v, el);
+			} else {
+				return new ObjectAction(className, funcName, el);
+			}
+		} else {
+			return new SimpleAction(interpreter, fn.image, el);
+		}
+	}
+}
+
+Action action_load_package(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	List<Expression> el = null;
+}
+{
+	<LOAD_PACKAGE> el=object_arguments(symbolTable, interpreter)
+	{
+		return new LoadPackageAction(el, interpreter);
+	}
+}
+
+Action action_load_from_url(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	List<Expression> el = null;
+}
+{
+	<LOAD_FROM_URL> el=object_arguments(symbolTable, interpreter)
+	{
+		return new LoadFromURLAction(el, interpreter);
+	}
+}
+
+Action action_parse(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	List<Expression> el = null;
+}
+{
+	<PARSE> el=object_arguments(symbolTable, interpreter)
+	{
+		return new ParseAction(el);
+	}
+}
+
+Action action_retrieve(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Relation r;
+}
+{
+	<RETRIEVE> r=relation(symbolTable, interpreter)
+	{
+		return new RetrieveAction(r, interpreter);
+	}
+}
+
+Action action_test(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression e;
+}
+{
+	<IS_TRUE> e=expression(symbolTable, interpreter)
+	{
+		return new TestAction(e);
+	}
+}
+
+Action action_assert(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Relation r;
+}
+{
+	<ASSERT> r=relation(symbolTable, interpreter)
+	{
+		return new AssertAction(r, interpreter);
+	}
+}
+
+Action action_retract(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Relation r;
+}
+{
+	<RETRACT> r=relation(symbolTable, interpreter)
+	{
+		return new RetractAction(r, interpreter);
+	}
+}
+
+Action action_update(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Relation oldRel;
+	Relation newRel;
+}
+{
+	<UPDATE> "(" oldRel=relation(symbolTable, interpreter) ")" "(" newRel=relation(symbolTable, interpreter) ")"
+	{
+		return new UpdateAction(oldRel, newRel, interpreter);
+	}
+}
+
+Action action_fact(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Relation relation;
+}
+{
+	<FACT> relation = relation(symbolTable, interpreter)
+	{
+		return new FactAction(relation, interpreter);
+	}
+}
+
+Action action_fail() :
+{
+}
+{
+	<FAIL>
+	{
+		return new FailAction();
+	}
+}
+
+Action action_post(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	GoalAction ga;
+}
+{
+	<POST> ga=goal_action(symbolTable, interpreter)
+	{
+		return new PostAction(ga, interpreter);
+	}
+}
+
+Action action_unpost(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	GoalAction ga;
+}
+{
+	<UNPOST> ga=goal_action(symbolTable, interpreter)
+	{
+		return new UnpostAction(ga, interpreter);
+	}
+}
+
+//-------------------------------------------------------------------------------
+// GOAL_ACTION
+//-------------------------------------------------------------------------------
+
+GoalAction goal_action(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Token kw;
+	GoalAction gab;
+	Expression e_utility = null;
+	List<Expression> e_by = null;
+	List<Expression> e_not_by = null;
+}
+{
+	gab=goal_action_basic(symbolTable, interpreter) 
+	[ <KEYWORD_UTILITY> e_utility=expression(symbolTable, interpreter) ]
+	[ <KEYWORD_BY> e_by=object_arguments(symbolTable, interpreter) ]
+	[ <KEYWORD_NOT_BY> e_not_by=object_arguments(symbolTable, interpreter) ]
+	{
+		if (e_utility != null) {
+			gab.setUtility(e_utility);
+		}
+		if (e_by != null) {
+			gab.setBy(e_by);
+		}
+		if (e_not_by != null) {
+			gab.setNotBy(e_not_by);
+		}
+		return gab;		
+	}
+}
+
+GoalAction goal_action_basic(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	GoalAction a;
+}
+{
+	(
+		a=goal_action_basic_achieve(symbolTable, interpreter)
+		| a=goal_action_basic_perform(symbolTable, interpreter)
+		| a=goal_action_basic_maintain(symbolTable, interpreter)
+		| a=goal_action_basic_query(symbolTable, interpreter)
+	)
+	{
+		return a;
+	}
+}
+
+GoalAction goal_action_basic_achieve(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Relation rel;
+}
+{
+	<ACHIEVE> rel=relation(symbolTable, interpreter)
+	{
+		return new AchieveGoalAction(rel.getName(), rel, null, null, null, interpreter);
+	}
+}
+
+GoalAction goal_action_basic_perform(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Relation rel;
+}
+{
+	<PERFORM> rel=relation(symbolTable, interpreter)
+	{
+		return new PerformGoalAction(rel.getName(), rel, null, null, null, interpreter);
+	}
+}
+
+GoalAction goal_action_basic_maintain(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Relation rel;
+}
+{
+	<MAINTAIN> rel=relation(symbolTable, interpreter)
+	{
+		return new MaintainGoalAction(rel.getName(), rel, null, interpreter);
+	}
+}
+
+GoalAction goal_action_basic_query(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Relation rel;
+}
+{
+	<QUERY> rel=relation(symbolTable, interpreter)
+	{
+		return new QueryGoalAction(rel.getName(), rel, null, interpreter);
+	}
+}
+
+ThrowAction throw_action(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression expr = null;
+	Token id = null;
+	Expression[] args = Expression.NULL_ARRAY;
+}
+{
+	/*
+	<THROW> expr = expression(symbolTable, interpreter)
+	{
+		return new ThrowAction(expr);
+	}
+	*/
+
+	<THROW> <NEW> id = <CLASS_IDENTIFIER> "(" args = _arguments(symbolTable, interpreter) ")"  
+	{
+		if (expr != null) {
+			return new ThrowAction(expr);
+		} else {
+			return new ThrowAction(new String(id.image), args);
+		}
+	}
+}
+
+Expression[] _arguments(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	List<Expression> list = new LinkedList<Expression>();
+	Expression e = null;
+}
+{
+	[
+	e=expression(symbolTable, interpreter)		{list.add(e);}
+	( e=expression(symbolTable, interpreter)	{list.add(e);} )*
+	]
+	{return list.toArray(Expression.NULL_ARRAY);}
+}
+
+
+/**********************************************************************/
+/*											*/
+/*	Relation									*/
+/*											*/
+/**********************************************************************/
+
+Relation relation(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Token id = null;
+	Token name_space = null;
+	Prefix prefix = null;
+	Token prefi = null;
+	Token[] tokens;
+	List<Expression> el = null;
+}
+{	  prefi = <IDENTIFIER> (":" id = <IDENTIFIER>)* [ el=object_arguments(symbolTable, interpreter) ]
+		{
+		  if(id!=null) {
+		    	String relation_name = interpreter.getNameSpaceTable().getNameSpace(prefi.image).wrap(id.image);
+		    	//editor
+		    	Relation r = interpreter.getWorldModel().newRelation(relation_name, el);
+		    	r.set_fileName(this.fileName);
+		    	r.set_line(prefi.beginLine);
+		    	r.set_beginColumn(prefi.beginColumn);
+	  			return r;
+	  		}else {
+	  		  	id = prefi;
+	  		  	//editor
+				Relation r = interpreter.getWorldModel().newRelation(id.image, el);
+		    	r.set_fileName(this.fileName);
+		    	r.set_line(prefi.beginLine);
+		    	r.set_beginColumn(prefi.beginColumn);
+				return r;
+			} 
+		} 
+	| tokens = owl() [ el=object_arguments(symbolTable, interpreter) ] 
+		{
+		  	id = tokens[1];
+		  	name_space = tokens[0];
+			return interpreter.getWorldModel().newRelation(id.image, el);  /// @need to be modified.
+		}
+}
+
+
+Token[] owl():
+{
+  	Token[] owl_token = {null,null,null};
+  	Token protocol_type = null;
+	Token id = null;
+	Token name_space = null;
+}
+{
+	"<" protocol_type = <PROTOCOLTYPE> name_space = namespace() (id = <CLASS_IDENTIFIER> | id = <IDENTIFIER>)+ ">"
+	{
+	  	owl_token[0] = protocol_type;
+		owl_token[1] = name_space;
+		owl_token[2] = id;
+		return owl_token;
+	}
+}
+
+Token namespace():
+{
+	Token name_space;
+}
+{
+	name_space = <OWL_NAMESPACE_IDENTIFIER>
+		{
+		  return name_space;
+		}
+	| name_space = <SLASH_END_IDENTIFIER>
+		{
+		  return name_space;
+		}
+	| name_space = <HASH_END_IDENTIFIER>
+		{
+		  return name_space;
+		}
+}
+
+/**********************************************************************/
+/*																	*/
+/*	Expression														*/
+/*																	*/
+/**********************************************************************/
+
+List<Expression> object_arguments(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	List<Expression> exprList = new LinkedList<Expression>();
+	Expression e = null;
+}
+{
+	"(" [
+		e=expression(symbolTable, interpreter)
+		{
+			exprList.add(e);
+		}
+		(
+			"," e=expression(symbolTable, interpreter)
+			{
+				exprList.add(e);
+			}
+		)*
+	] ")"
+	{
+		return exprList;
+	}
+}
+
+/*
+List<Expression> explist(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	List<Expression> el = new LinkedList<Expression>();
+	Expression e = null;
+}
+{
+	[
+		e=expression(symbolTable, interpreter) 
+		{
+			el.add(e);
+		}
+		( e=expression(symbolTable, interpreter)
+			{
+				el.add(e);
+			}
+		)*
+	]
+	{
+		return el;
+	}
+}
+*/
+
+Expression expression(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression expr = null;
+}
+{
+	expr = conditionalExpression(symbolTable, interpreter)
+	{
+		return expr;
+	}
+}
+
+Expression conditionalExpression(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression expr = null;
+}
+{
+	expr = conditionalOrExpression(symbolTable, interpreter) 
+	{
+		return expr;
+	}
+}
+
+Expression conditionalOrExpression(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression lhExpr = null;
+	Expression rhExpr = null;
+}
+{
+	lhExpr = conditionalAndExpression(symbolTable, interpreter) 
+	(
+		"||" rhExpr = conditionalAndExpression(symbolTable, interpreter) 
+		{
+			List<Expression> exprList = new LinkedList<Expression>();
+			exprList.add(lhExpr);
+			exprList.add(rhExpr);
+			lhExpr = new FunctionCall(interpreter, "||", exprList);
+		}
+	)*
+	{
+		return lhExpr;
+	}
+}
+
+Expression conditionalAndExpression(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression lhExpr = null;
+	Expression rhExpr = null;
+}
+{
+	lhExpr = equalityExpression(symbolTable, interpreter)
+	(
+		"&&" rhExpr = equalityExpression(symbolTable, interpreter)
+		{
+			List<Expression> exprList = new LinkedList<Expression>();
+			exprList.add(lhExpr);
+			exprList.add(rhExpr);
+			lhExpr = new FunctionCall(interpreter, "&&", exprList);
+		}
+	)*
+	{
+		return lhExpr;
+	}
+}
+
+Expression equalityExpression(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression lhExpr = null;
+	Expression rhExpr = null;
+	Token t = null;
+}
+{
+	lhExpr = relationalExpression(symbolTable, interpreter)
+	(
+		( t = "==" | t = "!=" ) rhExpr = relationalExpression(symbolTable, interpreter)
+		{
+			List<Expression> exprList = new LinkedList<Expression>();
+			exprList.add(lhExpr);
+			exprList.add(rhExpr);
+			lhExpr = new FunctionCall(interpreter, t.image, exprList);
+		}		
+	)*
+	{
+		return lhExpr;
+	}
+}
+
+Expression relationalExpression(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression lhExpr = null;
+	Expression rhExpr = null;
+	Token t = null;
+}
+{
+	lhExpr = additiveExpression(symbolTable, interpreter)
+	(
+		( t = "<" | t = ">" | t = "<=" | t = ">=" ) rhExpr = additiveExpression(symbolTable, interpreter)
+		{
+			List<Expression> exprList = new LinkedList<Expression>();
+			exprList.add(lhExpr);
+			exprList.add(rhExpr);
+			lhExpr = new FunctionCall(interpreter, t.image, exprList);
+		}
+	)*
+	{
+		return lhExpr;
+	}	
+}
+
+Expression additiveExpression(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression lhExpr = null;
+	Expression rhExpr = null;
+	Token t = null;
+}
+{
+	lhExpr = multiplicativeExpression(symbolTable, interpreter)
+	(
+		( t = "+" | t = "-" ) rhExpr = multiplicativeExpression(symbolTable, interpreter) 
+		{
+			List<Expression> exprList = new LinkedList<Expression>();
+			exprList.add(lhExpr);
+			exprList.add(rhExpr);
+			lhExpr = new FunctionCall(interpreter, t.image, exprList);
+		}
+	)*
+	{
+		return lhExpr;
+	}	
+}
+
+Expression multiplicativeExpression(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression lhExpr = null;
+	Expression rhExpr = null;
+	Token t = null;
+}
+{
+	lhExpr = unaryExpression(symbolTable, interpreter)
+	(
+		( t = "*" | t = "/" ) rhExpr = unaryExpression(symbolTable, interpreter)
+		{
+			List<Expression> exprList = new LinkedList<Expression>();
+			exprList.add(lhExpr);
+			exprList.add(rhExpr);
+			lhExpr = new FunctionCall(interpreter, t.image, exprList);
+		}
+	)*
+	{
+		return lhExpr;
+	}
+}
+
+Expression unaryExpression(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Expression expr = null;
+}
+{
+	"!" expr = unaryExpression(symbolTable, interpreter)
+	{
+		List<Expression> exprList = new LinkedList<Expression>();
+		exprList.add(expr);
+		return new FunctionCall(interpreter, "!", exprList);
+	}
+	| expr = primaryExpression(symbolTable, interpreter) 
+	{
+		return expr;
+	}	
+}
+
+Expression primaryExpression(SymbolTable symbolTable, Interpreter interpreter) :    ///// the second lowest unit.
+{
+	Expression expr = null;
+}
+{
+	(
+		"(" expr = expression(symbolTable, interpreter) ")"
+//		| expr = predicate(symbolTable, interpreter)
+		| expr = funcall(symbolTable, interpreter)
+		| expr = variable(symbolTable) ( expr = obj_operation(expr, symbolTable, interpreter) )* 
+		| expr = value()
+		| expr = obj_creation(symbolTable, interpreter) ( expr = obj_operation(expr, symbolTable, interpreter) )*
+		| expr = cls_operation(symbolTable, interpreter) ( expr = obj_operation(expr, symbolTable, interpreter) )*
+	)
+	{
+		return expr;
+	}
+}
+
+Value value() :
+{
+	Token v;
+	Token[] vs = null;
+}
+{
+	v=<INTEGER>		{ return new Value(Integer.valueOf(v.image).intValue()); }
+|	v=<FLOAT>		{ return new Value(Double.valueOf(v.image).doubleValue()); }
+|	v=<STRING>		{ return new Value(v.image); }
+|   vs=owl() 		{
+  						String value = vs[0].image + vs[1].image + vs[2].image;
+  						return new Value(value); } 
+//|	v=<ADDRESS>		{ return v.image; }
+}
+
+Variable variable(SymbolTable symbolTable) :
+{
+	Token v;
+}
+{
+	v=<VARIABLE>		
+	{ 
+		return new Variable(symbolTable.getSymbol(v.image)); 
+	}
+}
+
+FunctionCall funcall(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Token fn;
+	List<Expression> el;
+}
+{
+	"`" fn=<IDENTIFIER> el=object_arguments(symbolTable, interpreter) 
+	{
+		return new FunctionCall(interpreter, fn.image, el);
+	}
+}
+
+ObjectCreation obj_creation(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Token t;
+	List<Expression> exprList;
+}
+{
+	<NEW> ( t = <CLASS_IDENTIFIER> | t = <IDENTIFIER> ) exprList=object_arguments(symbolTable, interpreter)
+	{
+		Class<?> clazz = null;
+		try {
+			clazz = _loader.loadClass(t.image);
+		} catch(ClassNotFoundException ex) {
+			throw new ParseException(ex.getLocalizedMessage());
+		}
+		return new ObjectCreation(clazz, exprList);	
+	}
+}
+
+Expression cls_operation(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Token t = null;
+	Token[] owl_token = { null,null,null };
+	List<Expression> expressionList = null;
+}
+{
+	( t = <CLASS_IDENTIFIER> | t = <IDENTIFIER> | owl_token = owl() ) [ LOOKAHEAD(2) expressionList = object_arguments(symbolTable, interpreter) ]
+	{
+		try {
+		  	StringTokenizer tokenizer = null;
+		  	if(t==null) {
+		  	  String parameter = owl_token[0].image + owl_token[1].image + owl_token[2].image;
+		  	  tokenizer = new StringTokenizer(t.image, "."); 
+		  	}else { 
+				tokenizer = new StringTokenizer(t.image, ".");
+			}
+			Class<?> clazz = _loader.loadClass(tokenizer);
+			Expression expression = new Value(clazz);
+			if (!tokenizer.hasMoreTokens()) {
+				throw new ParseException("require: field/method name");
+			}
+			while(tokenizer.hasMoreTokens()) {
+				String token = tokenizer.nextToken();
+				if (tokenizer.hasMoreTokens()) {
+					expression = new ObjectGetField(expression, token);
+				} else {
+					/*
+					 * MixedClassOperation�� xx.xx.xx.xx() �Ǵ� xx.xx.xx.xx �� �� �� �ִ�.
+					 * ������ �κп��� call method ���� get field ���� �˻��ؾ� �Ѵ�.
+					 */
+					if (expressionList != null) {
+						expression = new ObjectInvokeMethod(expression, token, expressionList);
+					} else {
+						expression = new ObjectGetField(expression, token);
+					}
+				}
+			}
+			return expression;
+		} catch(ClassNotFoundException e) {
+			throw new ParseException(e.getLocalizedMessage());
+		}
+	}
+}
+
+//Expression cls_operation(SymbolTable symbolTable, Interpreter interpreter) :
+//{
+//	Token t = null;
+//	Token t2 = null;
+//	Token[] owl_token = {null,null,null};
+//	Token protocol_type = null;
+//	Token namespace = null;
+//	Token id = null;
+//	List<Expression> expressionList = null;
+//}
+//{
+//	( t = <CLASS_IDENTIFIER> (":" t2 = <IDENTIFIER> )* | t = <IDENTIFIER> (":" t2 = <IDENTIFIER> )* | owl_token = owl() ) [ LOOKAHEAD(2) expressionList = object_arguments(symbolTable, interpreter) ]
+//	{
+//		try {
+//		  	StringTokenizer tokenizer;
+//		  	Class<?> clazz;
+//		  	Expression expression;
+//			if(t==null) {
+//			  protocol_type=owl_token[0];
+//			  namespace=owl_token[1];
+//			  id=owl_token[2];
+//			  String tokenizerpar = protocol_type.image + namespace.image + id.image;
+//			  tokenizer = new StringTokenizer(tokenizerpar, ".");
+//			  clazz = _loader.loadClass(tokenizer);
+//			  expression = new Value(clazz);
+//			}
+////			}else if(t2!=null) {
+////			  String tokenizerpar = interpreter.getNameSpaceTable().getNameSpace(t.image).wrap(t2.image);
+////			  System.out.println(tokenizerpar);
+////			  tokenizer = new StringTokenizer(tokenizerpar, ".");
+////			  expression = new Value(tokenizerpar);
+////			}
+//			else {
+//			  tokenizer = new StringTokenizer(t.image, ".");
+//			  clazz = _loader.loadClass(tokenizer);
+//			  expression = new Value(clazz);
+//			}
+//			if (!tokenizer.hasMoreTokens()) {
+//				throw new ParseException("require: field/method name");
+//			}
+//			while(tokenizer.hasMoreTokens()) {
+//				String token = tokenizer.nextToken();
+//				if (tokenizer.hasMoreTokens()) {
+//					expression = new ObjectGetField(expression, token);
+//				} else {
+//					/*
+//					 * MixedClassOperation�� xx.xx.xx.xx() �Ǵ� xx.xx.xx.xx �� �� �� �ִ�.
+//					 * ������ �κп��� call method ���� get field ���� �˻��ؾ� �Ѵ�.
+//					 */
+//					if (expressionList != null) {
+//						expression = new ObjectInvokeMethod(expression, token, expressionList);
+//					} else {
+//						expression = new ObjectGetField(expression, token);
+//					}
+//				}
+//			}
+//			return expression;
+//		} catch(ClassNotFoundException e) {
+//			throw new ParseException(e.getLocalizedMessage());
+//		}
+//	}
+//}
+
+Expression obj_operation(Expression expression, SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Token t = null;
+	List<Expression> expressionList = null;
+}
+{
+	( 
+		LOOKAHEAD(2) "." t = <IDENTIFIER> [ LOOKAHEAD(2) expressionList = object_arguments(symbolTable, interpreter) ] 
+		{
+			if (expressionList == null) {
+				return new ObjectGetField(expression, t.image);
+			} else {
+				return new ObjectInvokeMethod(expression, t.image, expressionList);
+			}
+			expressionList = null;
+		}
+	)+
+	{
+		return expression;
+	}
+}
+
+
+
+
+/*
+Predicate predicate(SymbolTable symbolTable, Interpreter interpreter) :
+{
+	Token kw;
+	Token id;
+	List<Expression> el;
+	Relation r;
+}
+{
+	"(" kw=<FACT> id=<IDENTIFIER> el=explist(symbolTable, interpreter) ")"
+	{
+		r = interpreter.getWorldModel().newRelation(id.image, el); 
+		return new PredicateFact(id.image, r, interpreter.getWorldModel());
+	}
+	| "(" kw=<RETRIEVE> id=<IDENTIFIER> el=explist(symbolTable, interpreter) ")"
+	{
+		r = interpreter.getWorldModel().newRelation(id.image, el); 
+		return new PredicateRetrieve(id.image, r, interpreter.getWorldModel());
+	}
+	| "(" kw=<ACHIEVE> id=<IDENTIFIER> el=explist(symbolTable, interpreter) ")"
+	{
+		r = interpreter.getWorldModel().newRelation(id.image, el); 
+		return new PredicateAchieve(id.image, r, interpreter.getIntentionStructure());
+	}
+}
+*/
+

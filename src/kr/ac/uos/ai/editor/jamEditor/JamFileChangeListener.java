@@ -30,25 +30,15 @@ import kr.ac.uos.ai.editor.jamEditor.util.Util;
 public class JamFileChangeListener implements IResourceChangeListener {
 	
 //    private TableViewer table; //assume this gets initialized somewhere
-
     public void resourceChanged(IResourceChangeEvent event) {
+    	
        //we are only interested in POST_CHANGE events
     	
        if (event.getType() != IResourceChangeEvent.POST_CHANGE)
           return;
        
        IResourceDelta rootDelta = event.getDelta();
-       
        IResourceDelta planDocDelta = null;
-//       for (IProject iProject : projects) {
-//    	   String projectName = iProject.getName();
-//    	   IPath planPath = new Path(projectName + "/plan");
-//    	   planDocDelta = rootDelta.findMember(planPath);
-//    	   
-//    	   if(planDocDelta != null)
-//    		   break;
-//       }
-       
        IResourceDelta projectDelta = rootDelta.getAffectedChildren()[0];
        
        if(projectDelta == null)
@@ -63,23 +53,18 @@ public class JamFileChangeListener implements IResourceChangeListener {
 //       IResourceDelta docDelta = rootDelta.findMember(docPath);
        if (planDocDelta == null)
           return;
-
-       System.out.println(planDocDelta.toString());
+ 
        
        final ArrayList changed = new ArrayList();
 //       IFile a = new File(DOC_PATH, Workspace.get);
        
-//       System.out.println(planDocDelta.toString());
-       
        IResourceDeltaVisitor visitor = new IResourceDeltaVisitor() {
           public boolean visit(IResourceDelta delta) {
-        	  
         	  IResource resource = delta.getResource();
         	  //only jam file extension
         	  if (resource.getType() != IResource.FILE) {
         		  return true;
         	  }
-        	  
         	  if(resource.getFileExtension() == null) {
         		  return true;
         	  }
@@ -87,10 +72,8 @@ public class JamFileChangeListener implements IResourceChangeListener {
         	  if(!resource.getFileExtension().equals("jam")) {
         		  return true;
         	  }
-        	  
         	  String path = resource.getFullPath().toString();
-//    		  String fileName = resource.getName();
-        	  
+
               //file removed 
         	  if(delta.getKind() == IResourceDelta.REMOVED) {
         		  JamEditorPlugin.getInstance().delelteFileEvent(path);
@@ -107,19 +90,23 @@ public class JamFileChangeListener implements IResourceChangeListener {
         		  return true;
         	  }
         	  
-        	  //only interested in content changes
-        	  if (delta.getFlags() == IResourceDelta.CONTENT) {
+        	  //marker changed
+        	  if(delta.getFlags() == IResourceDelta.MARKERS) {
+        		  return false;
+        	  }
+        	  
+        	  //only interested in content changes        	
+        	  if (delta.getFlags() == IResourceDelta.CONTENT || delta.getFlags() == 131328) {
         		  JamEditorPlugin.getInstance().changeFileEvent(path);
-//        		  JamEditorPlugin.getInstance().getEditorModel().printEditorModel();
-        		  System.out.println("changed");
+        		  System.out.println("changed...........");
         		  return true;
         	  }
-                
              //only interested in files with the "txt" extension
 //             if (resource.getType() == IResource.FILE && 
 //				"txt".equalsIgnoreCase(resource.getFileExtension())) {
 //                changed.add(resource);
 //             }
+        	 
              return true;
           }
        };

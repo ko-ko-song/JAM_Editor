@@ -23,7 +23,7 @@ public class JamCodeScanner extends RuleBasedScanner{
 	
 	private final String[] goalActions = {"ACHIEVE", "PERFORM", "CONCLUDE", "MAINTAIN"};
 	private final String[] planProperties = {"ID:", "NAME:", "PRECONDITION:", "CONTEXT:", "BODY:", "UTILITY:"};
-	private final String[] worldmodelInteractions = {"FACT", "RETRIEVE", "MATCH", "UPDATE"};
+	private final String[] worldmodelInteractions = {"FACT", "RETRIEVE", "MATCH", "UPDATE", "ASSERT", "RETRACT"};
 	private final String[] keywords = {"PLAN", "FACTS:", "OBSERVER:", "PREFIXES:", "GOALS:"};
 
 	public JamCodeScanner(JamColorProvider provider) {
