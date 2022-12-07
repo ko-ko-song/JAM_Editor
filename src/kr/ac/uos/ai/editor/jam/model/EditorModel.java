@@ -3,6 +3,7 @@ package kr.ac.uos.ai.editor.jam.model;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
@@ -12,6 +13,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 import uos.ai.jam.Interpreter;
+import uos.ai.jam.NameSpace;
+import uos.ai.jam.NameSpaceTable;
 import uos.ai.jam.Prefix;
 import uos.ai.jam.expression.Relation;
 import uos.ai.jam.expression.condition.Condition;
@@ -30,6 +33,7 @@ public class EditorModel {
 	
 	private PlanTable 		planTable;
 	private RelationTable 	relationTable;
+//	private NameSpaceTable _nameSpaceTable;
 	private PrefixManager	prefixManager;
 
 	public EditorModel() {
@@ -65,7 +69,22 @@ public class EditorModel {
 			
 		return prefixManager;
 	}
-
+//
+//	public NameSpaceTable getNameSpaceTable() {
+//		if(_nameSpaceTable == null)
+//			_nameSpaceTable = new NameSpaceTable();
+//		
+//		return _nameSpaceTable;
+//	}
+//	
+//	public void addNameSpace(String url){
+//		this._nameSpaceTable.addNameSpace(url);
+//	}
+	
+	
+	
+	
+	
 	public String getProjectName() {
 		return projectName;
 	}
@@ -75,15 +94,19 @@ public class EditorModel {
 	}
 
 	public void init(String projectName) {
+		System.out.println("model init");
 		planTable = new PlanTable();
 		relationTable = new RelationTable();
 		prefixManager = new PrefixManager();
+		
+//		_nameSpaceTable = new NameSpaceTable();
+		
+		
 		
 		this.projectName = projectName;
 		
 	}
 
-	
 	public void deleteFileContentFromModel(String fileFullpath) {
 		System.out.println("delete file event : " + fileFullpath);
 		
@@ -105,12 +128,23 @@ public class EditorModel {
 		}
 
 		
+//		List<Prefix> prefixes = _nameSpaceTable.getPrefixes();
+//		if(prefixes != null) {
+//			List<Prefix> prefixesCopy = new ArrayList<>(prefixes);
+//			for (Prefix prefix : prefixesCopy) {
+//				prefix.get_fileName().equals(fileFullpath);
+//				
+//				_nameSpaceTable.remove(prefix);
+//			}	
+//		}
+		
 		List<Prefix> prefixes = prefixManager.getAllPrefixes();
 		if(prefixes != null) {
 			List<Prefix> prefixesCopy = new ArrayList<>(prefixes);
 			for (Prefix prefix : prefixesCopy) {
-				prefix.get_fileName().equals(fileFullpath);
-				prefixManager.remove(prefix);
+				if(prefix.get_fileName().equals(fileFullpath)) 
+					prefixManager.remove(prefix);
+				
 			}	
 		}
 	}
@@ -119,6 +153,12 @@ public class EditorModel {
 		if(interpreter == null)
 			return;
 //		System.out.println("add file event : " + fileFullpath);
+		
+		
+		
+		
+		
+		
         for (Plan plan : interpreter.getPlanLibrary().getGoalSpecPlans()) {
         	planTable.add(plan);
 
@@ -153,11 +193,19 @@ public class EditorModel {
     			}
         	}
         }
-			
         
-        for (Prefix prefix : interpreter.getNameSpaceTable().getPrefixes()) {
-			prefixManager.add(prefix);
-		}
+        for(Prefix prefix : interpreter.getNameSpaceTable().getPrefixes()) {
+        	this.prefixManager.add(prefix);
+        }
+        
+        
+//        for (NameSpace ns : interpreter.getNameSpaceTable().getName_spaces_table()) {
+//			this._nameSpaceTable.addNameSpace(ns);
+//		}
+//        
+//        for (Entry<String, NameSpace> entrySet : interpreter.getNameSpaceTable().getPrefix_name_spaces_table().entrySet()) {
+//			this._nameSpaceTable.addPrefix(entrySet.getKey(), entrySet.getValue());
+//		}
 	}
 	
 	
@@ -238,6 +286,7 @@ public class EditorModel {
 		planTable.printAllPlans();
         relationTable.printAllRelations();
         prefixManager.printAllPrefixes();
+//        _nameSpaceTable.printAllPrefixes();
 	}
 	
 }

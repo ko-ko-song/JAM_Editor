@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 public class NameSpaceTable {
 
@@ -29,7 +30,13 @@ public class NameSpaceTable {
 	
 	//
 	
-	
+	public void remove(Prefix prefix) {
+		NameSpace ns = this.prefix_name_spaces_table.get(prefix.getPrefix());
+		if(ns!=null)
+			name_spaces_table.remove(ns);
+		
+		this.prefix_name_spaces_table.remove(prefix.getPrefix());
+	}
 	
 	
 	public NameSpaceTable(){
@@ -158,5 +165,33 @@ public class NameSpaceTable {
 		NameSpace ns = new NameSpace(url);
 		return this.isThere(ns);
 	}
-	
+
+	public ArrayList<NameSpace> getName_spaces_table() {
+		return name_spaces_table;
+	}
+
+	public void setName_spaces_table(ArrayList<NameSpace> name_spaces_table) {
+		this.name_spaces_table = name_spaces_table;
+	}
+
+	public HashMap<String, NameSpace> getPrefix_name_spaces_table() {
+		return prefix_name_spaces_table;
+	}
+
+	public void setPrefix_name_spaces_table(HashMap<String, NameSpace> prefix_name_spaces_table) {
+		this.prefix_name_spaces_table = prefix_name_spaces_table;
+	}
+
+	public void printAllPrefixes() {
+		StringBuilder sbFormat = new StringBuilder();
+		sbFormat.append("prefix List------------------------------------------------------------------------------------ \n");
+		for (Entry<String, NameSpace> entrySet : prefix_name_spaces_table.entrySet()) {
+			String prefix = entrySet.getKey();
+			NameSpace ns = entrySet.getValue();
+			
+			sbFormat.append(String.format("%-10s %-60s", prefix, ns));
+			sbFormat.append("\n");
+		}
+		System.out.println(sbFormat.toString());
+	}
 }

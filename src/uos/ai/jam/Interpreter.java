@@ -264,9 +264,9 @@ public class Interpreter implements Serializable {
 				// Generate an Applicable Plan List (APL) if necessary
 
 				/*
-				 * APL 占쏙옙占쏙옙 占쏙옙 WorldModel.clearNewAll()占쏙옙 호占쏙옙占쌔억옙 占싹몌옙,
-				 * 占쏙옙 占쏙옙占쏙옙占쏙옙 WorldModel.lock 占쏙옙占쏙옙占쏙옙 占쏙옙占쏙옙퓸占쏙옙 占싹므뤄옙
-				 * WorldModel.execute()占쏙옙 占쏙옙占쏙옙磯占�.
+				 * APL �뜝�룞�삕�뜝�룞�삕 �뜝�룞�삕 WorldModel.clearNewAll()�뜝�룞�삕 �샇�뜝�룞�삕�뜝�뙏�뼲�삕 �뜝�떦紐뚯삕,
+				 * �뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕�뜝�룞�삕 WorldModel.lock �뜝�룞�삕�뜝�룞�삕�뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕�벝�뜝�룞�삕 �뜝�떦誘�琉꾩삕
+				 * WorldModel.execute()�뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕髥��뜝占�.
 				 */
 				getWorldModel().execute(generator.setMetaLevel(metaLevel));
 				apl = generator.getAPL();
@@ -330,8 +330,8 @@ public class Interpreter implements Serializable {
 //						selectedElement = last_apl.getUtilityRandom();
 
 						/*
-						 * 占쏙옙 占쏙옙占쏙옙클 占쏙옙占쏙옙 占쏙옙 占싱삼옙占쏙옙 fact占쏙옙 占쏙옙占쏙옙풔占� 占쏙옙占�, 占쏙옙 占싼뱄옙占쏙옙 selection 占쏙옙 wm.clearNew()占쏙옙 호占쏙옙占싹댐옙 占쌕띰옙占쏙옙
-						 * 占싹놂옙占쏙옙 占쏙옙占쏙옙占쏙옙 占쏙옙占쏙옙占쏙옙 fact占쏙옙占쏙옙 conclude占쏙옙 占쏙옙占쏙옙占쏙옙占� 占십댐옙 占쏙옙占쏙옙 占쌔곤옙
+						 * �뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕�겢 �뜝�룞�삕�뜝�룞�삕 �뜝�룞�삕 �뜝�떛�궪�삕�뜝�룞�삕 fact�뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕�뮅�뜝占� �뜝�룞�삕�뜝占�, �뜝�룞�삕 �뜝�떬諭꾩삕�뜝�룞�삕 selection �뜝�룞�삕 wm.clearNew()�뜝�룞�삕 �샇�뜝�룞�삕�뜝�떦�뙋�삕 �뜝�뙐�씛�삕�뜝�룞�삕
+						 * �뜝�떦�냲�삕�뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕�뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕�뜝�룞�삕 fact�뜝�룞�삕�뜝�룞�삕 conclude�뜝�룞�삕 �뜝�룞�삕�뜝�룞�삕�뜝�룞�삕�뜝占� �뜝�떗�뙋�삕 �뜝�룞�삕�뜝�룞�삕 �뜝�뙏怨ㅼ삕
 						 */
 						List<APLElement> concludeBased = last_apl.getConcludeBased();
 						for (APLElement intention : concludeBased) {
@@ -385,13 +385,17 @@ public class Interpreter implements Serializable {
 			rel = _worldModelManager.getWorldModel().newRelation("APL", null); 
 			getWorldModel().retract(rel, null);
 			
-			// Global Exception 처占쏙옙占쏙옙 占쏙옙占쌔쇽옙 ExceptionManager占쏙옙 execute()占쏙옙 호占쏙옙
+			// Global Exception 泥섇뜝�룞�삕�뜝�룞�삕 �뜝�룞�삕�뜝�뙏�눦�삕 ExceptionManager�뜝�룞�삕 execute()�뜝�룞�삕 �샇�뜝�룞�삕
 			getExceptionManager().execute(this);
 		
 		} // Outer infinite loop
 
 	}
-
+	
+	public void setNameSpaceTable() {
+		
+	}
+		
 	public void setPlanFolder(String s) {
 		new PlanManager(s, this);
 	}

@@ -33,15 +33,18 @@ public class Util {
     }
 	
 	
-	public static String getPrefixStringValue(String value) {
+	public static String getPrefixedStringValue(String value, String filePath) {
 		String prefixStringValue = null;
 		for (Prefix prefix : JamEditorPlugin.getInstance().getEditorModel().getPrefixManager().getAllPrefixes()) {
+			if(!prefix.get_fileName().contentEquals(filePath)) 
+				continue;
+			
 			String prefixValue = prefix.getValue();
 			
 			if(value.contains(prefixValue)) {
 				prefixStringValue = value.replace(prefixValue, prefix.getPrefix()+":");
-				prefixStringValue = prefixStringValue.replace("<", "");
-				prefixStringValue = prefixStringValue.replace(">", "");
+				prefixStringValue.substring(1, prefixStringValue.length()-1);
+				System.out.println("prefixed value : " + prefixStringValue);
 				return prefixStringValue;
 			}
 		}

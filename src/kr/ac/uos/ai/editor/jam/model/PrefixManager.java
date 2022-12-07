@@ -10,39 +10,51 @@ import uos.ai.jam.Prefix;
 
 public class PrefixManager {
 
-	private final Map<String, Prefix> prefixes;
+//	private final Map<String, Prefix> prefixes;
+	private final List<Prefix> prefixes;
 	
 	public PrefixManager() {
-		prefixes = new HashMap<String, Prefix>();
+//		prefixes = new HashMap<String, Prefix>();
+		prefixes = new LinkedList<Prefix>();
 	}
 	
 	
+//	public boolean add(Prefix prefix) {
+//		if(prefixes.containsKey(prefix.getPrefix())) {
+//			for (Prefix prefixV : prefixes.values()) {
+//				if(prefix.get_fileName().contentEquals(prefixV.get_fileName()))
+//					return false;
+//			}
+//		}
+//		
+//		prefixes.put(prefix.getPrefix(), prefix);
+//		return true;
+//	}
+
 	public boolean add(Prefix prefix) {
-		if(prefixes.containsKey(prefix.getPrefix()))
-			return false;
-		
-		prefixes.put(prefix.getPrefix(), prefix);
+		for (Prefix p : prefixes) {
+			if(prefix.get_fileName().contentEquals(p.get_fileName())){
+				if(prefix.getPrefix().equals(p.getPrefix()) && prefix.getValue().contentEquals(p.getValue()))
+					return false;
+			}
+		}
+		prefixes.add(prefix);
 		return true;
 	}
 	
-	public void remove(String prefixName) {
-		if(prefixes.containsKey(prefixName)) {
-			prefixes.remove(prefixName);
-		}
-		else {
-			System.out.println("delete 실패 : " + prefixName + " 가 존재하지 않습니다");
-		}
-	}
+	
+//	public void remove(String prefixName) {
+//		if(prefixes.containsKey(prefixName)) {
+//			prefixes.remove(prefixName);
+//		}
+//		else {
+//			System.out.println("delete 실패 : " + prefixName + " 가 존재하지 않습니다");
+//		}
+//	}
 	
 	public void remove(Prefix prefix) {
-		if(prefixes.containsKey(prefix.getPrefix())) {
-			if(prefix.get_fileName().equals(prefixes.get(prefix.getPrefix()).get_fileName())){
-				prefixes.remove(prefix.getPrefix());	
-			}
-		}
-		else {
-			
-		}
+		prefixes.remove(prefix);
+		
 	}
 	
 	/**
@@ -54,26 +66,26 @@ public class PrefixManager {
 	 */
 	
 	public Prefix getPrefix(String prefixName) {
-		if(!prefixes.containsKey(prefixName)) {
-			System.out.println(prefixName + " 가 존재하지 않습니다");
-			return null;
+		for (Prefix prefix : prefixes) {
+			if(prefixName.contentEquals(prefix.getPrefix()))
+				return prefix;
 		}
-		return prefixes.get(prefixName);
+		return null;
 	}
 	
 	public String getValue(String prefixName) {
-		if(!prefixes.containsKey(prefixName)) {
-			System.out.println(prefixName + " 가 존재하지 않습니다");
-			return null;
+		for (Prefix prefix : prefixes) {
+			if(prefixName.contentEquals(prefix.getPrefix()))
+				return prefix.getValue();
 		}
 			
-		return prefixes.get(prefixName).getValue();
+		return null;
 	}
 	
 
 	public List<Prefix> getAllPrefixes() {
 		List<Prefix> result = new ArrayList<Prefix>();
-		for (Prefix prefix: prefixes.values()) {
+		for (Prefix prefix: prefixes) {
 			result.add(prefix);
 		}
 		return result;

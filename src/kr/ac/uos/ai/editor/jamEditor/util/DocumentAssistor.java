@@ -60,7 +60,10 @@ public class DocumentAssistor {
 	
 	public char charAt(int index) {
 		if(this.content == null)
-			return (Character) null;
+			return 0;
+		
+		if(index >= this.content.length())
+			return 0;
 		
 		return this.content.charAt(index);
 	}

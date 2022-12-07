@@ -18,6 +18,9 @@ import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.ui.IEditorPart;
 
 import kr.ac.uos.ai.editor.jamEditor.util.Util;
+import uos.ai.jam.Interpreter;
+import uos.ai.jam.NameSpace;
+import uos.ai.jam.Prefix;
 import uos.ai.jam.parser.JAMParser;
 import uos.ai.jam.plan.Plan;
 import uos.ai.jam.plan.action.GoalAction;
@@ -42,8 +45,23 @@ public class HyperlinkDetector extends AbstractHyperlinkDetector{
                 String lineContent = document.get(lineInformationOfOffset.getOffset(),
                         lineInformationOfOffset.getLength());
                 
-                GoalAction goalAction = JAMParser.parseAction(lineContent);
+                ////for prefix
+                IFile file = (IFile) activeEditor.getEditorInput().getAdapter(IResource.class);
+                String fileName = file.getFullPath().toString();
+                List<Prefix> prefixes = new LinkedList<Prefix>();
+                for (Prefix prefix: JamEditorPlugin.getInstance().getEditorModel().getPrefixManager().getAllPrefixes()) {
+					if(!prefix.get_fileName().contentEquals(fileName)) 
+						continue;
+					prefixes.add(prefix);
+				} 
                 
+                Interpreter interpreter = new Interpreter();
+                for (Prefix prefix : prefixes) {
+                	interpreter.getNameSpaceTable().addPrefix(prefix, new NameSpace(prefix.getValue()));	
+				}
+                //////
+                GoalAction goalAction = JAMParser.parseAction(lineContent, interpreter);
+
                 if(goalAction == null)
                 	return null;
                 
@@ -57,7 +75,7 @@ public class HyperlinkDetector extends AbstractHyperlinkDetector{
                 if(targetRegion == null) 
                 	return null;
 
-                System.out.println("rel name : " + relationName);
+//                System.out.println("rel name : " + relationName);
                 
                 List<Plan> plans = JamEditorPlugin.getInstance().getEditorModel().getPlanManager().getPlans(relationName);
                 if(plans == null) 

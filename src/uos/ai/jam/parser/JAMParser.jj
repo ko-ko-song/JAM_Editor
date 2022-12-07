@@ -25,6 +25,8 @@ import java.io.Reader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.Map;
+import java.util.HashMap;
 
 import uos.ai.jam.Interpreter;
 import uos.ai.jam.exception.AgentRuntimeException;
@@ -313,13 +315,11 @@ public class JAMParser {
 		}
 	}
 
-	public static GoalAction parseAction(String string) {
+	public static GoalAction parseAction(String string, Interpreter interpreter) {
 		JAMParser parser;
 
 		parser = new JAMParser(new ByteArrayInputStream(string.getBytes()));
 		Plan plan = new Plan();
-		Interpreter interpreter = new Interpreter();
-
    		GoalAction goalAction = null;
 		try {
 			goalAction = parser.goal_action(plan.getSymbolTable(), interpreter);
@@ -330,7 +330,25 @@ public class JAMParser {
 		return goalAction;
 	}
 
+	public static Map<String, String> parsePrefixes(String string) {
+		JAMParser parser;
+		parser = new JAMParser(new ByteArrayInputStream(string.getBytes()));
+		Interpreter interpreter = new Interpreter();
+		   try {
+					interpreter = (Interpreter)parser.parsePrefixes(interpreter);
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					return null;
+				}
+						
+		List<Prefix> prefixes =  interpreter.getNameSpaceTable().getPrefixes();
+		Map<String, String> prefixMap = new HashMap<String, String>();
+		for(Prefix prefix : prefixes) {
+			prefixMap.put(prefix.getPrefix(), prefix.getValue());
+		}
 
+		return prefixMap;
+	}
 
 
 
@@ -537,9 +555,24 @@ TOKEN : {
 
 }
 
-//
-//
-//
+
+
+//editor
+Object parsePrefixes(Interpreter interpreter) :
+{
+}
+{
+	  <PREFIX_DECL>	( prefix(interpreter) )*
+	  {
+	    return interpreter;
+	  }
+}
+
+
+
+
+
+
 
 Object ParseJamAgentDefinition(Interpreter interpreter) :
 {
@@ -567,6 +600,10 @@ void import_statement() :
 		}
 	}
 }
+
+
+
+
 
 /**********************************************************************/
 /**                                                                  **/
@@ -1717,7 +1754,15 @@ Relation relation(SymbolTable symbolTable, Interpreter interpreter) :
 {	  prefi = <IDENTIFIER> (":" id = <IDENTIFIER>)* [ el=object_arguments(symbolTable, interpreter) ]
 		{
 		  if(id!=null) {
-		    	String relation_name = interpreter.getNameSpaceTable().getNameSpace(prefi.image).wrap(id.image);
+		    //editor
+		    	String relation_name;
+		    	if(interpreter.getNameSpaceTable().getNameSpace(prefi.image) != null) {
+					relation_name = interpreter.getNameSpaceTable().getNameSpace(prefi.image).wrap(id.image);
+		    	}
+				else {
+				  relation_name = prefi.image + ":" + id.image;
+				}
+		    	
 		    	//editor
 		    	Relation r = interpreter.getWorldModel().newRelation(relation_name, el);
 		    	r.set_fileName(this.fileName);

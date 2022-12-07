@@ -151,14 +151,14 @@ public class PlanTable {
 			goalName = plan.getGoalSpecification().getRelation().getName();
 		}
 		else if(plan.getConcludeSpecification() != null) {
-			goalName = plan.getGoalSpecification().getRelation().getName();
+			goalName = plan.getConcludeSpecification().getName();
 		}
 		
 		if(goalName.equals("")) {
 			return;
 		}
 		
-		List<Plan> plans = goalNameByPlanTable.get(plan.getGoalSpecification().getName());
+		List<Plan> plans = goalNameByPlanTable.get(goalName);
 		if(plans != null)
 			plans.remove(plan);
 		
@@ -189,7 +189,9 @@ public class PlanTable {
 
 	public boolean isExist(Relation relation) {
 		for (Plan plan : this.getAllPlans()) {
-			Relation r = plan.getGoalSpecification().getRelation();
+			Relation r = null;
+			if(plan.getGoalSpecification() != null)
+				r = plan.getGoalSpecification().getRelation();
 			
 			if(r == null)
 				r = plan.getConcludeSpecification();
