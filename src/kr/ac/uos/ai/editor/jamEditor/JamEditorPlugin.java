@@ -50,7 +50,11 @@ import uos.ai.jam.parser.JAMParser;
 import uos.ai.jam.plan.Plan;
 import uos.ai.jam.plan.constructor.PlanConstruct;
 import uos.ai.jam.plan.constructor.PlanSimpleConstruct;
-
+/**
+ * 
+ * @author JiHun
+ *
+ */
 public class JamEditorPlugin extends AbstractUIPlugin {
 
 //	private static JavaEditorExamplePlugin fgInstance;
@@ -130,7 +134,6 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		}
 		jamEditorModel.printEditorModel();
 	}
-	
 	
 	public EditorModel getEditorModel() {
 		return this.jamEditorModel; 
@@ -223,7 +226,7 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		IPath path = new Path(jamEditorModel.getProjectName() + "/plan");
 		IResource adapter = ResourcesPlugin.getWorkspace().getRoot().getFolder(path).getAdapter(IResource.class);
 				
-		markerJob = Job.create("Adding Warning Marker", (ICoreRunnable) monitor -> {
+		markerJob = Job.create("update Warning Marker", (ICoreRunnable) monitor -> {
 			
 			adapter.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
 //			List<IMarker> markers = Arrays.asList(adapter.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE));
@@ -275,7 +278,7 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		ErrorInformation information = JAMParser.parseStringForErrorDetection(null, fileContent);
 		
 		Job markerJob = null;
-		markerJob = Job.create("Adding Error Marker", (ICoreRunnable) monitor -> {
+		markerJob = Job.create("update Error Marker", (ICoreRunnable) monitor -> {
 			file.deleteMarkers(IMarker.PROBLEM, true, 0);
 //			List<IMarker> markers = Arrays.asList(file.findMarkers(IMarker.PROBLEM, true, 0));
 //			for (IMarker iMarker : markers) {

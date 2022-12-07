@@ -27,3 +27,5 @@ error trace
 이클립스에서 file change, remove, add 감지하여 jam editor model update
 다른 프로젝트에서 jam 파일이 열리면 이전 jam editor model 지우고 새로운 jam editor model 생성
 프로젝트 별로 editor model이 다르거나, 지우고 새로 생성 택1 해야하는데 일단은 후자로 구현
+
+

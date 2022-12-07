@@ -53,7 +53,7 @@ public class MarkerDocumentSetup implements IDocumentSetupParticipant{
 					if(markerJob != null) {
 						markerJob.cancel();
 					}
-					markerJob = Job.create("Adding Error Marker", (ICoreRunnable) monitor -> updateErrorMarker(event, adapter));
+					markerJob = Job.create("update Error Marker", (ICoreRunnable) monitor -> updateErrorMarker(event, adapter));
 					markerJob.setUser(false);
 					markerJob.setPriority(Job.DECORATE);
 					markerJob.schedule(500);

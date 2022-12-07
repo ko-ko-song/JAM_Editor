@@ -31,6 +31,7 @@ import uos.ai.jam.plan.Plan;
 public class PlanContentAssistProcessor implements IContentAssistProcessor{
     public static List<String> goalActionProposals = Arrays.asList("perform", "achieve", "maintain", "conclude");
     public static List<String> worldModelActionProposals = Arrays.asList("fact", "retrieve", "retract", "update", "assert");
+    public static List<String> etcProposals = Arrays.asList("System.out.println()");
     
     private String replacementText = "";
     private int replacementLength = 0;
@@ -43,7 +44,6 @@ public class PlanContentAssistProcessor implements IContentAssistProcessor{
 	@Override
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 	
-		
 		IDocument document = viewer.getDocument();
 		List<String> proposalList = new LinkedList<String>();
 		
@@ -75,7 +75,6 @@ public class PlanContentAssistProcessor implements IContentAssistProcessor{
 		String[] lineText = lineStartToOffsetValue.split(" ");
 	
 		
-		
 		if(lineText == null) 
 			return new ICompletionProposal[0];
 	
@@ -85,6 +84,7 @@ public class PlanContentAssistProcessor implements IContentAssistProcessor{
 
 			proposalList.addAll(goalActionProposals);
 			proposalList.addAll(worldModelActionProposals);
+			proposalList.addAll(etcProposals);
 			//action ÃßÃµ
 			
 			for (String goalActionProposal : goalActionProposals) {

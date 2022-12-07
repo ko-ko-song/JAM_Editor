@@ -78,6 +78,7 @@ public class PrefixManager {
 		}
 		return result;
 	}
+
 	
 	public void printAllPrefixes() {
 		StringBuilder sbFormat = new StringBuilder();

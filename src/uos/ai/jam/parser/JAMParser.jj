@@ -295,7 +295,7 @@ public class JAMParser {
 	
 		try {
 			interpreter = (Interpreter) parser.ParseJamAgentDefinition(interpreter);
-			System.out.println("parseStringForErrorDetection : JAM string parse successful.");
+//			System.out.println("parseStringForErrorDetection : JAM string parse successful.");
 			return null;
 		} catch (ParseException e) {
 			ErrorInformation info = new ErrorInformation();
@@ -312,6 +312,28 @@ public class JAMParser {
 			return null;
 		}
 	}
+
+	public static GoalAction parseAction(String string) {
+		JAMParser parser;
+
+		parser = new JAMParser(new ByteArrayInputStream(string.getBytes()));
+		Plan plan = new Plan();
+		Interpreter interpreter = new Interpreter();
+
+   		GoalAction goalAction = null;
+		try {
+			goalAction = parser.goal_action(plan.getSymbolTable(), interpreter);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+		} 
+		return goalAction;
+	}
+
+
+
+
+
 	
 //
 

@@ -6,6 +6,9 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+import kr.ac.uos.ai.editor.jamEditor.JamEditorPlugin;
+import uos.ai.jam.Prefix;
+
 public class Util {
 	
 	private Util() {
@@ -29,6 +32,22 @@ public class Util {
         return activePage.getActiveEditor();
     }
 	
+	
+	public static String getPrefixStringValue(String value) {
+		String prefixStringValue = null;
+		for (Prefix prefix : JamEditorPlugin.getInstance().getEditorModel().getPrefixManager().getAllPrefixes()) {
+			String prefixValue = prefix.getValue();
+			
+			if(value.contains(prefixValue)) {
+				prefixStringValue = value.replace(prefixValue, prefix.getPrefix()+":");
+				prefixStringValue = prefixStringValue.replace("<", "");
+				prefixStringValue = prefixStringValue.replace(">", "");
+				return prefixStringValue;
+			}
+		}
+
+		return prefixStringValue;
+	}
 	
 //	public void getDocument() {
 //		IPath path = Path.fromOSString(file);
