@@ -1,0 +1,20 @@
+PREFIXES:
+		PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+PLAN PERFORM isro:STTRequest($content){
+	ID: "http://www.arbi.com//STTRequest"
+ 
+	PRECONDITION:
+		FACT Communication($communicationInstance);
+		FACT isro:BehaviorAddress($address);
+	BODY:
+		PERFORM isro:startLog("PERFORM", "isro:STTRequest");
+
+		$communicationInstance.request($address, "(STT \"" +  $content + "\")");
+		
+		WAIT actionCompleted;
+		RETRACT actionCompleted;
+			
+		PERFORM isro:endLog("PERFORM", "isro:STTRequest");
+	UTILITY: 30000;
+} 

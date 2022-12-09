@@ -55,11 +55,11 @@ public class PlanTable {
 		return true;
 	}
 
-	private boolean planIDCheck(Plan plan) {
+	public boolean planIDCheck(Plan plan) {
 		boolean isValidity = true;
 		
 		if(plan.getId() == null) {
-			System.out.println("plan ID not found.");
+//			System.out.println("plan ID not found.");
 			isValidity = false;
 		}
 		else {
@@ -68,7 +68,7 @@ public class PlanTable {
 					Plan planToCompare = plans.get(i);
 					if(planToCompare.getId().equals(plan.getId())) {
 						isValidity = false;
-						System.out.println("plan ID duplicated.");
+//						System.out.println("plan ID duplicated.");
 						return false;
 					}
 				}
@@ -180,7 +180,7 @@ public class PlanTable {
 				sb.append(plan.getConcludeSpecification());
 			}
 			
-			sbFormat.append(String.format("%-60s %s %-30s %s %s", sb.toString(), "file name : ", plan.get_fileName(), "line : ", plan.get_line()));
+			sbFormat.append(String.format("%-120s %s %-80s %s %s", sb.toString(), "file name : ", plan.get_fileName(), "line : ", plan.get_line()));
 			sbFormat.append("\n");
 		}
 		

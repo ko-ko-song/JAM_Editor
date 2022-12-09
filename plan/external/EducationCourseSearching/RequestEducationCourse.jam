@@ -1,0 +1,37 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+plan achieve education:RequestEducationCourse($person){
+	ID: "http://www.uos.ac.kr//EducationService/RequestEducationCourse"	
+
+	precondition:
+		FACT GLUtility($glUtility);
+		fact currentClass($classId,$className,$startTime,$endTime);
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:RequestEducationCourse");
+		perform isro:QueryToKM($person,"http://www.robot-arbi.kr/ontologies/isro.owl#isStudent","null",$result);
+		$answer = $result;
+		
+		if($result == "null"){
+			assert notStudent($person);
+		}else{
+			perform isro:QueryToKM($classId,"http://www.robot-arbi.kr/ontologies/isro.owl#nextLecture","null",$result);
+			if($result != "null"){
+				perform isro:QueryToKM($result,"http://www.robot-arbi.kr/ontologies/isro.owl#instructInSubject","null",$subjectName);
+				perform isro:QueryToKM($subjectName,"http://knowrob.org/kb/knowrob.owl#fullName","null",$fullClassName);
+				assert appropreateClass($person,$fullClassName);
+			}else{
+				assert appropreateClass($person,"null");
+			}
+			
+			
+		}
+		
+		perform isro:endLog("achieve", "education:RequestEducationCourse");
+}

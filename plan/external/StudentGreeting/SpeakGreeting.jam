@@ -1,0 +1,95 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+ 
+plan achieve education:SpeakGreeting(){
+	ID: "http://www.uos.ac.kr//EducationService/SpeakGreeting"
+	precondition:
+		fact StudentName($id,$name,$count,$age);
+		fact currentClass($classId,$className,$startTime,$endTime);
+		fact ExtraUtility($extra);
+		$count != "0";
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:SpeakGreeting");
+
+		$arg = "(argument \"" + $age + "\" \"" + $name + "\" \"" + $className + "\" \"60\")";
+		
+		perform isro:SpeakTo($id,"GreetStudent",$arg);
+		
+		perform isro:endLog("achieve", "education:SpeakGreeting");
+}
+
+plan achieve education:SpeakGreeting(){
+	ID: "http://www.uos.ac.kr//EducationService/SpeakGreeting2"
+	precondition:
+		fact StudentName($id,$name,$count,$age);
+		fact currentClass($classId,$className,$startTime,$endTime);
+		fact ExtraUtility($extra);
+		$count == "0";
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:SpeakGreeting");
+		$arg = "(argument \"" + $age + "\" \"" + $className + "\" \"60\" \"�떎踰�\")";
+		
+		perform isro:SpeakTo($id,"GreetNewStudent",$arg);
+		perform isro:endLog("achieve", "education:SpeakGreeting");
+}
+
+
+plan achieve education:SpeakGreeting(){
+	ID: "http://www.uos.ac.kr//EducationService/SpeakGreeting3"
+	precondition:
+		fact StudentName($id,$name,$count,$age);
+		fact currentClass($classId,$className,$startTime,$endTime);
+		fact studentNumber($classId,$number);
+		fact ExtraUtility($extra);
+		$number == "2";
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:SpeakGreeting");
+		$arg = "(argument \"" + $age + "\" \"" + $className + "\" \"60\")";
+		
+		perform isro:SpeakTo($id,"GreetStudents(\"oldAge\")",$arg);
+		
+		perform isro:endLog("achieve", "education:SpeakGreeting");
+	utility : 1000;
+}
+
+plan achieve education:SpeakGreeting(){
+	ID: "http://www.uos.ac.kr//EducationService/SpeakGreeting4"
+	precondition:
+		fact StudentName($id,$name,$count,$age);
+		fact currentClass($classId,$className,$startTime,$endTime);
+		fact studentNumber($classId,$number);
+		fact ExtraUtility($extra);
+		$number == 2;
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:SpeakGreeting(integer num)");
+		$arg = "(argument \"" + $age + "\" \"" + $className + "\" \"60\")";
+		
+		perform isro:SpeakTo($id,"GreetStudents(\"oldAge\")",$arg);
+		
+		perform isro:endLog("achieve", "education:SpeakGreeting");
+	utility : 1000;
+}
+
+

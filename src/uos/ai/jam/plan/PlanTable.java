@@ -112,22 +112,36 @@ public class PlanTable implements Serializable {
 	public void add(Plan plan) {
 		// plan.setId(makeUniqueId());
 		// make id check
-		if (planIDCheck(plan) == false) {
-			return;
-		} else {
-			if (plan.getGoalSpecification() != null) {
-				String goalName = plan.getGoalSpecification().getName();
-				List<Plan> plans = _goalSpecPlanTable.get(goalName);
-				if (plans == null) {
-					plans = new LinkedList<Plan>();
-					_goalSpecPlanTable.put(goalName, plans);
-				}
-				plans.add(plan);
-			} else if (plan.getConcludeSpecification() != null) {
-				_conclusePlanList.add(plan);
+//		if (planIDCheck(plan) == false) {
+//			return;
+//		} else {
+//			if (plan.getGoalSpecification() != null) {
+//				String goalName = plan.getGoalSpecification().getName();
+//				List<Plan> plans = _goalSpecPlanTable.get(goalName);
+//				if (plans == null) {
+//					plans = new LinkedList<Plan>();
+//					_goalSpecPlanTable.put(goalName, plans);
+//				}
+//				plans.add(plan);
+//			} else if (plan.getConcludeSpecification() != null) {
+//				_conclusePlanList.add(plan);
+//			}
+//			firePlanAddedEvent(plan);
+//		}
+		
+		//editor
+		if (plan.getGoalSpecification() != null) {
+			String goalName = plan.getGoalSpecification().getName();
+			List<Plan> plans = _goalSpecPlanTable.get(goalName);
+			if (plans == null) {
+				plans = new LinkedList<Plan>();
+				_goalSpecPlanTable.put(goalName, plans);
 			}
-			firePlanAddedEvent(plan);
+			plans.add(plan);
+		} else if (plan.getConcludeSpecification() != null) {
+			_conclusePlanList.add(plan);
 		}
+		firePlanAddedEvent(plan);
 	}
 
 	private boolean planIDCheck(Plan plan) {

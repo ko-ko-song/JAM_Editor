@@ -10,7 +10,6 @@ import kr.ac.uos.ai.editor.jamEditor.util.Util;
 public class JamFileFinder{
 	
 	public JamFileFinder() {
-		System.out.println("@@@@JamFileFinder");
 	}
 	
 	public void findFiles() {
@@ -18,8 +17,6 @@ public class JamFileFinder{
 		if(activeEditor != null) {
 			IEditorInput editorInput = activeEditor.getEditorInput();
 			IResource adapter = editorInput.getAdapter(IResource.class);
-			System.out.println(adapter.getName());
-			System.out.println(adapter.getParent().getName());
 			
 			IResource[] members = null;
 			try {

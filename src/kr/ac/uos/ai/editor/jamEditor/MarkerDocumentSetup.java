@@ -53,7 +53,7 @@ public class MarkerDocumentSetup implements IDocumentSetupParticipant{
 					if(markerJob != null) {
 						markerJob.cancel();
 					}
-					markerJob = Job.create("update Error Marker", (ICoreRunnable) monitor -> updateErrorMarker(event, adapter));
+					markerJob = Job.create("update Error Marker2", (ICoreRunnable) monitor -> JamEditorPlugin.getInstance().updateSyntaxErrorMarker(event, adapter.getFullPath().toString()));
 					markerJob.setUser(false);
 					markerJob.setPriority(Job.DECORATE);
 					markerJob.schedule(500);
@@ -66,52 +66,51 @@ public class MarkerDocumentSetup implements IDocumentSetupParticipant{
 		});
 	}
 
-	
-	private void updateErrorMarker(DocumentEvent event, IResource adapter) throws CoreException {
-		ErrorInformation information = JAMParser.parseStringForErrorDetection(null, event.getDocument().get());
-		adapter.deleteMarkers(IMarker.PROBLEM, true, 0);
-//		List<IMarker> markers = Arrays.asList(adapter.findMarkers(IMarker.PROBLEM, true, 0));
-//		for (IMarker iMarker : markers) {
-//			if(iMarker.getAttribute(IMarker.SEVERITY).equals(IMarker.SEVERITY_ERROR))
-//				iMarker.delete();
+//	
+//	private void updateErrorMarker(DocumentEvent event, IResource adapter) throws CoreException {
+//		ErrorInformation information = JAMParser.parseStringForErrorDetection(null, event.getDocument().get());
+//		adapter.deleteMarkers(IMarker.PROBLEM, true, 0);
+////		List<IMarker> markers = Arrays.asList(adapter.findMarkers(IMarker.PROBLEM, true, 0));
+////		for (IMarker iMarker : markers) {
+////			if(iMarker.getAttribute(IMarker.SEVERITY).equals(IMarker.SEVERITY_ERROR))
+////				iMarker.delete();
+////		}
+//		
+//		if(information==null)
+//			return;
+//
+//		List<String> expectedTokens = information.getExpectedTokenImages();
+//		
+//		String errorMessage = "exptected tokens : \n";
+//		for (String expectedToken : expectedTokens) {
+//			errorMessage += expectedToken +"\n";
 //		}
-		
-		if(information==null)
-			return;
-		
-
-		List<String> expectedTokens = information.getExpectedTokenImages();
-		
-		String errorMessage = "exptected tokens : \n";
-		for (String expectedToken : expectedTokens) {
-			errorMessage += expectedToken +"\n";
-		}
-		int line = information.getCurrentToken().beginLine;
-		
-		IMarker marker = adapter.createMarker(IMarker.PROBLEM);
-		
-		marker.setAttribute(IMarker.LINE_NUMBER, line);
-		marker.setAttribute(IMarker.MESSAGE, errorMessage);
-		marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-		
-		
-		int start = 0;
-		int end = 0;
-		try {
-			start = event.getDocument().getLineOffset(line - 1);
-			end = event.getDocument().getLineOffset(line);
-			
-			while(event.getDocument().getChar(start) == ' ' || event.getDocument().getChar(start) == '\t'){                                   
-			    start++;
-			}
-		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		marker.setAttribute(IMarker.CHAR_START, start);
-		marker.setAttribute(IMarker.CHAR_END, end);
-	}
+//		int line = information.getCurrentToken().beginLine;
+//		
+//		IMarker marker = adapter.createMarker(IMarker.PROBLEM);
+//		
+//		marker.setAttribute(IMarker.LINE_NUMBER, line);
+//		marker.setAttribute(IMarker.MESSAGE, errorMessage);
+//		marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+//		
+//		
+//		int start = 0;
+//		int end = 0;
+//		try {
+//			start = event.getDocument().getLineOffset(line - 1);
+//			end = event.getDocument().getLineOffset(line);
+//			
+//			while(event.getDocument().getChar(start) == ' ' || event.getDocument().getChar(start) == '\t'){                                   
+//			    start++;
+//			}
+//		} catch (BadLocationException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		
+//		marker.setAttribute(IMarker.CHAR_START, start);
+//		marker.setAttribute(IMarker.CHAR_END, end);
+//	}
 
 }

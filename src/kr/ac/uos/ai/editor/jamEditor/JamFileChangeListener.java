@@ -78,7 +78,7 @@ public class JamFileChangeListener implements IResourceChangeListener {
         	  if(delta.getKind() == IResourceDelta.REMOVED) {
         		  JamEditorPlugin.getInstance().delelteFileEvent(path);
 //        		  JamEditorPlugin.getInstance().getEditorModel().printEditorModel();
-        		  System.out.println("removed");
+//        		  System.out.println("removed");
         		  return true;
         	  }      
         	  
@@ -86,7 +86,7 @@ public class JamFileChangeListener implements IResourceChangeListener {
         	  if(delta.getKind() == IResourceDelta.ADDED) {
         		  JamEditorPlugin.getInstance().addFileEvent(path);
 //        		  JamEditorPlugin.getInstance().getEditorModel().printEditorModel();        		  
-        		  System.out.println("added");
+//        		  System.out.println("added");
         		  return true;
         	  }
         	  
@@ -98,7 +98,7 @@ public class JamFileChangeListener implements IResourceChangeListener {
         	  //only interested in content changes        	
         	  if (delta.getFlags() == IResourceDelta.CONTENT || delta.getFlags() == 131328) {
         		  JamEditorPlugin.getInstance().changeFileEvent(path);
-        		  System.out.println("changed...........");
+//        		  System.out.println("changed...........");
         		  return true;
         	  }
              //only interested in files with the "txt" extension

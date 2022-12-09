@@ -19,6 +19,28 @@ public class DocumentAssistor {
 	// Ã¹ ÁÙ ==>0
 	
 	
+	public void readString(String string) {
+		List<String> lineText = new LinkedList<String>();
+	    StringBuilder lineBuilder = new StringBuilder();
+	    StringBuilder textBuilder = new StringBuilder();
+	    
+	    int c = 0;
+	    for(int i=0; i<string.length(); i++) {
+	    	c = string.charAt(i);
+	    	if(c == '\n') {
+	    		lineText.add(lineBuilder.toString());
+        		lineBuilder.setLength(0);
+	    	}
+	    	else
+	    		lineBuilder.append((char) c);
+	    	
+	    	textBuilder.append((char) c);
+	    }
+	    lineText.add(lineBuilder.toString());
+	    
+	    lineContent = lineText.toArray(new String[0]);
+	    this.content = textBuilder.toString();
+	}
 	
 	public void readInputStream(InputStream inputStream) {
 		

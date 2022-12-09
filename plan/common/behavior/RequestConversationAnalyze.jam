@@ -1,0 +1,18 @@
+PREFIXES:
+		PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+
+PLAN PERFORM  isro:RequestConversationAnalyze($person,$dialogue){
+	ID: "http://www.arbi.com//RequestConversationAnalyze"
+	PRECONDITION:
+		FACT Dialogue($dm);
+	BODY:
+		PERFORM  isro:startLog("PERFORM", "isro:RequestConversationAnalyze");
+		
+		$dm.analyzeIntention($person,$dialogue);
+		
+		PERFORM  isro:endLog("PERFORM", "isro:RequestConversationAnalyze");
+	UTILITY: 30000;
+}
+

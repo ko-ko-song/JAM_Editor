@@ -75,5 +75,6 @@ public class JamCodeScanner extends RuleBasedScanner{
 		IRule[] result= new IRule[rules.size()];
 		rules.toArray(result);
 		setRules(result);
+//		System.out.println("----jam code scanner");
 	}
 }

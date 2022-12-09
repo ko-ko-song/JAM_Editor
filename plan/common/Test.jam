@@ -1,0 +1,17 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+plan achieve test(){
+	ID: "http://www.arbi.com//test" 
+
+	precondition:
+		
+	context:
+		body:
+		perform isro:startLog("achieve", "test");
+		ASSERT lol();
+		ASSERT testa("12","34");
+		perform isro:endLog("achieve", "test");
+}

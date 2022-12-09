@@ -1,0 +1,9 @@
+PREFIXES:
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+FACTS:	
+	fact isro:robot("sylbot");
+	fact Position("http://www.robot-arbi.kr/ontologies/EduService.owl#Person001", 0.2 ,0.2, 0);
+	fact isro:hasCapability("sylbot","PerceptionModuleCapability");
+	fact isro:hasCapability("sylbot","ContextInformationRequestCapability");
+	fact isro:hasCapability("sylbot","KnowledgeInformationRequestCapability");

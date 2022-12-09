@@ -30,6 +30,7 @@ public class EditorModel {
 	
 	private static EditorModel instance;
 	private String projectName = "";
+	private String planPath = "";
 	
 	private PlanTable 		planTable;
 	private RelationTable 	relationTable;
@@ -91,6 +92,7 @@ public class EditorModel {
 
 	public void setProjectName(String projectName) {
 		this.projectName = projectName;
+		this.planPath = "/" + projectName + "/plan";
 	}
 
 	public void init(String projectName) {
@@ -101,14 +103,12 @@ public class EditorModel {
 		
 //		_nameSpaceTable = new NameSpaceTable();
 		
-		
-		
 		this.projectName = projectName;
-		
+		this.planPath = "/" + projectName + "/plan";
 	}
 
 	public void deleteFileContentFromModel(String fileFullpath) {
-		System.out.println("delete file event : " + fileFullpath);
+//		System.out.println("delete file event : " + fileFullpath);
 		
 		List<Plan> plans = planTable.getPlansFromFileName(fileFullpath);
 		if(plans != null) {
@@ -154,14 +154,14 @@ public class EditorModel {
 			return;
 //		System.out.println("add file event : " + fileFullpath);
 		
-		
-		
-		
-		
+		for (Relation relation : interpreter.getWorldModelCandidatesRelations()) {
+			relationTable.add(relation);
+		}
 		
         for (Plan plan : interpreter.getPlanLibrary().getGoalSpecPlans()) {
-        	planTable.add(plan);
-
+        	if(!planTable.add(plan))
+        		continue;
+        	
         	//conclude를 제외한 goal action의 plan의 relation 및 body에 assert relation에 해당하는 relation들을 저장
         	relationTable.add(plan.getGoalSpecification().getRelation());
         	if(plan.getBody() != null) {
@@ -170,13 +170,17 @@ public class EditorModel {
     					if(((PlanSimpleConstruct)planConstruct).getAction().getType() == Action.ACT_ASSERT){
     						relationTable.add(((PlanSimpleConstruct)planConstruct).getAction().getRelation());
     					}
+    					else if(((PlanSimpleConstruct)planConstruct).getAction().getType() == Action.ACT_UPDATE){
+    						relationTable.add(((UpdateAction)((PlanSimpleConstruct)planConstruct).getAction()).getNewRelation());
+    					}
     				}
     			}	
         	}
         }
         
         for (Plan plan : interpreter.getPlanLibrary().getConcludePlans()) {
-        	planTable.add(plan);
+        	if(!planTable.add(plan))
+        		continue;
         	
         	//conclude plan의 relation 및 body에 assert relation에 해당하는 relation들을 저장
         	relationTable.add(plan.getConcludeSpecification());
@@ -278,6 +282,10 @@ public class EditorModel {
 		}
 
 		return notExistRelations;
+	}
+	
+	public String getPlanPath() {
+		return this.planPath;
 	}
 	
 	

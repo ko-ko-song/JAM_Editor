@@ -1,0 +1,20 @@
+PREFIXES:
+		PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+PLAN CONCLUDE  VoicePerceived($dialogue){
+	ID: "http://www.arbi.com//VoicePreceived"
+
+	PRECONDITION:
+		fact Position($person, $x ,$y, $z);
+	BODY:
+		PERFORM  isro:startLog("CONCLUDE", "VoicePerceived");
+		
+		PERFORM isro:RequestConversationAnalyze($person,$dialogue);
+		retract  VoicePerceived($dialogue);
+		PERFORM  isro:endLog("CONCLUDE", "VoicePerceived");
+	UTILITY: 30000;
+}
+
+
+  

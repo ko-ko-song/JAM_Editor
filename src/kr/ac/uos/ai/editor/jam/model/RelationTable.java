@@ -75,16 +75,13 @@ public class RelationTable {
 
 	}
 	
-	
-	
-	
 	public void printAllRelations() {
 		StringBuilder sb = new StringBuilder();
 		StringBuilder sbFormat = new StringBuilder();
 		sbFormat.append("relation List------------------------------------------------------------------------------------ \n");
 		for (Relation relation : getAllRelations()) {
 			
-			sbFormat.append(String.format("%-60s %s %-30s %s %s", relation.toString(), "file name : ", relation.get_fileName(), "line : ", relation.get_line()));
+			sbFormat.append(String.format("%-120s %s %-80s %s %s", relation.toString(), "file name : ", relation.get_fileName(), "  line : ", relation.get_line()));
 			sbFormat.append("\n");
 		}
 		

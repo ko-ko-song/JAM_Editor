@@ -1,0 +1,36 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+plan conclude ExternalKnowledgeAnswering($s, $p){
+	ID: "http://www.uos.ac.kr//EducationService/ExternalKnowledgeAnswering"
+	body:
+		perform isro:startLog("conclude", "ExternalKnowledgeAnswering");
+		
+		retract education:ExternalKnowledgeAnswering($s,$p);
+		retract education:AnswerSearched($s,$p,$answer);
+		retract education:FinalizeService("ExternalKnowledgeAnswering");		
+		post achieve education:ExternalKnowledgeAnswering($s, $p);
+		retract ExternalKnowledgeAnswering($s, $p);
+		
+		perform isro:endLog("conclude", "ExternalKnowledgeAnswering");
+}
+
+plan achieve education:ExternalKnowledgeAnswering($s,$p){
+	ID: "http://www.uos.ac.kr//EducationService/ExternalKnowledgeAnswering2"
+	precondition:
+		
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "ExternalKnowledgeAnswering");
+		achieve education:AnswerSearched($s,$p,$answer);
+		perform education:AnswerQuestion($s,$p,$answer);
+		achieve education:FinalizeService("ExternalKnowledgeAnswering");
+		perform isro:endLog("achieve", "ExternalKnowledgeAnswering");
+}
+      

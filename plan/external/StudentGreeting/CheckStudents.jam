@@ -1,0 +1,26 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+plan achieve education:CheckStudents(){
+	ID: "http://www.uos.ac.kr//EducationService/CheckStudents"
+	precondition:
+		fact studentNumber($id,$number);
+		fact studentInClass($personID,$status);
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body: 
+		perform isro:startLog("achieve", "education:CheckStudents1");
+		
+		perform isro:QueryToKM($personID,"http://knowrob.org/kb/knowrob.owl#fullName","null",$name);
+		perform isro:QueryToKM($personID,"http://www.robot-arbi.kr/ontologies/isro_social.owl#visitFreq","null",$freq);
+		perform isro:QueryToKM($personID,"http://www.robot-arbi.kr/ontologies/isro_social.owl#isAged","null",$age);
+		
+		assert StudentName($personID,$name,$freq,$age); 
+		
+		perform isro:endLog("achieve", "education:CheckStudents");
+}

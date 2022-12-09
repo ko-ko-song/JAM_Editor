@@ -1,0 +1,22 @@
+PREFIXES:
+		PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+ 
+PLAN PERFORM isro:RequestConversationContent($intention,$argument,$result){
+	ID: "http://www.arbi.com//RequestConversationContent"
+	PRECONDITION:
+		FACT Dialogue($dialogue);
+		FACT GLUtility($glUtility);
+	BODY:
+		PERFORM isro:startLog("PERFORM", "RequestConversationContent");
+
+	
+		$dialogue.sendIntention($intention,$argument);
+		
+		WAIT ResponseConversationContent($result);
+		RETRACT ResponseConversationContent($result);
+		
+		$test = $glUtility.retrieveGLExpression($result,0);
+		$result = $test;
+		PERFORM isro:endLog("PERFORM", "RequestConversationContent");
+}     

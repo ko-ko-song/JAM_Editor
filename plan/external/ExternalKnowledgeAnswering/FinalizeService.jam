@@ -1,0 +1,16 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+plan achieve education:FinalizeService($serviceName){
+	ID: "http://www.uos.ac.kr//EducationService/FinalizeService2"
+	precondition:
+		$serviceName == "ExternalKnowledgeAnswering";
+	context :
+		
+	body:
+		perform isro:startLog("achieve", "education:FinalizeService");
+
+		perform isro:endLog("achieve", "education:FinalizeService");
+}

@@ -1,0 +1,35 @@
+PREFIXES:
+		PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+PLAN ACHIEVE isro:SpeakTo($person,$intention,$argument){
+	ID: "http://www.arbi.com//RequestSpeakTo"
+
+	PRECONDITION:
+
+	BODY:
+		PERFORM isro:startLog("ACHIEVE", "SpeakTo");
+		PERFORM isro:STTRequest("off");
+		PERFORM isro:RequestRotate(0,0,0.2);
+		PERFORM isro:RequestConversationContent($intention,$argument,$result);
+		PERFORM isro:RequestSpeak($result);
+		PERFORM isro:STTRequest("on");
+		ASSERT HeadingTarget;
+		PERFORM isro:endLog("ACHIEVE", "SpeakTo");
+}
+
+PLAN ACHIEVE isro:SpeakTo($person,$intention,$argument){
+	ID: "http://www.arbi.com//RequestSpeakTo2"
+
+	PRECONDITION:	
+		FACT HeadingTarget;
+	BODY:
+		PERFORM isro:startLog("ACHIEVE", "SpeakTo");
+		PERFORM isro:STTRequest("off");
+		PERFORM isro:RequestConversationContent($intention,$argument,$result);
+		PERFORM isro:RequestSpeak($result);
+		PERFORM isro:STTRequest("on");
+		PERFORM isro:endLog("ACHIEVE", "SpeakTo");
+	UTILITY: 1000;
+}
+ 
+  

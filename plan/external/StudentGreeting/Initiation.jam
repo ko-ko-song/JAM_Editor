@@ -1,0 +1,17 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+plan conclude initiation(){
+	ID: "http://www.uos.ac.kr//EducationService/initation"
+	body:
+		perform isro:startLog("conclude", "initiation");
+		
+		perform isro:QueryContext("(currentClass $ClassID $ClassName $StartTime $EndTime)");
+		perform isro:QueryContext("(studentNumber $ClassID $Count)");
+		perform isro:QueryContext("(studentInClass $PersonID $Status)");
+		
+		perform isro:endLog("conclude", "initiation");
+	utility : 50000;
+}

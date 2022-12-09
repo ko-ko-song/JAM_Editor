@@ -1,0 +1,73 @@
+PREFIXES:
+			PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+PLAN PERFORM  isro:QueryToKM($s, $p, $o, $result){
+	ID: "http://www.arbi.com//QueryToKM"
+	
+	PRECONDITION: 
+		FACT Communication($communicationInstance);
+		FACT isro:KnowledgeManagerAddress($address);
+		FACT GLUtility($glUtility);
+		$o == "null";
+	BODY:
+		PERFORM isro:startLog("PERFORM", "QueryToKM");
+	
+		$queryResult = $communicationInstance.sendQuery($address, "(queryRelation \"" + $s + "\" \"" + $p + "\" $o $result)");	
+		$result = $glUtility.retrieveGLExpression($queryResult,3);
+
+		$size = $glUtility.retireveExpressionSize($result);
+		
+		
+		if($size == 0){
+			$result = "null";
+		}else{
+			$result = $glUtility.retrieveGLExpression($result,0);
+				
+			$result = $glUtility.retrieveGLExpression($result,2);
+		}
+		if($size == "0"){
+			$result = "null";
+		}
+		PERFORM isro:endLog("PERFORM", "QueryToKM");
+		
+}
+
+
+PLAN PERFORM isro:QueryToKM($s, $p, $o, $result){
+	ID: "http://www.arbi.com//QueryToKM2"
+	PRECONDITION:
+		FACT Communication($communicationInstance);
+		FACT isro:KnowledgeManagerAddress($address);
+		FACT GLUtility($glUtility);
+		$s == "null";
+	BODY:  
+		PERFORM isro:startLog("PERFORM", "QueryToKM");
+	
+		$queryResult = $communicationInstance.sendQuery($address, "(queryRelation $s \"" + $p + "\" \"" + $o + "\" $result)");	
+		
+		$result = $glUtility.retrieveGLExpression($queryResult,3);
+		$result = $glUtility.retrieveGLExpression($result,0);
+		$result = $glUtility.retrieveGLExpression($result,0);
+
+		System.out.println("query result : " + $result);
+		PERFORM isro:endLog("PERFORM", "QueryToKM");
+}
+
+
+PLAN PERFORM isro:QueryToKMMultiRelation($s, $p, $o, $result){
+	ID: "http://www.arbi.com//QueryToKMMultiRelation"
+	PRECONDITION:
+		FACT Communication($communicationInstance);
+		FACT KnowledgeManagerAddress($address);
+		FACT GLUtility($glUtility);
+		$s == "null";
+	BODY:
+		PERFORM isro:startLog("PERFORM", "QueryToKM");
+	
+		$queryResult = $communicationInstance.sendQuery($address, "(queryMultiRelation $s \"" + $p + "\" \"" + $o + "\" $result)");	
+		
+		$result = $glUtility.retrieveGLExpression($queryResult,4);
+		
+		PERFORM isro:endLog("PERFORM", "QueryToKM");
+}
+

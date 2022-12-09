@@ -1,15 +1,13 @@
 import taskManager.utility.*;
 import taskManager.TaskManager;
 
-
-
 PREFIXES:
 	PREFIX arbi: <http://www.arbi.com//ontologies#>;
 	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;		
-	
+ 
 GOALS:
 	MAINTAIN alive  :UTILITY -10000;
-	PERFORM boot;
+	PERFORM	boot;
 	
 FACTS:
 	FACT LOG;
@@ -18,82 +16,44 @@ FACTS:
 
 OBSERVER: {
 	UPDATE (CURRENT_TIME ($time)) (CURRENT_TIME (System.currentTimeMillis()));
-	//FACT TaskManager($tm);
-	//$tm.dequeueMessage();
+	FACT TaskManager($tm);
+	$tm.dequeueMessage();
 }
 
-PLAN PERFORM boot($test, $test2){
+PLAN PERFORM boot() {
 	ID: "boot"
 	BODY:
+		
 		System.out.println("---Start Jam---");
+		RETRIEVE ExtraUtility($helper);
 		System.out.println("---Load plans---");
-		perform test();
-		//$helper.loadPlan("plan/planList.jam");
-
+		$helper.loadPlan("plan/planList.jam");
+		assert testPolicy("testPackage",30);
 		
-		perform boot($test,$test2);
-		ACHIEVE MeetingInformationConfirmed($meetingID)
+		$policyValue = $helper.getPolicy("testPolicy","testPackage");
+		
+		System.out.println($policyValue + 3);
+		
+		
 		PERFORM loadPlanPackage();
-		
 		System.out.println("---Load Complete---");
-		System.out.println("---Boot Complete---");
-		
-	NAME:
-	PRECONDITION:
-	UTILITY:
+
 }
 
-
-PLAN PERFORM boot($x, $y){
-	ID: "boot"
-		
-	BODY:
-		System.out.println("---Start Jam---");
-		System.out.println("---Load plans---");
-		perform test();
-		
-		//$helper.loadPlan("plan/planList.jam");
-		
-		achieve test($x, $y);
-		PERFORM loadPlanPackage();
-		assert state();
-		
-		System.out.println("---Load Complete---");
-		
-		System.out.println("---Boot Complete---");
-		NAME:
-		PRECONDITION:
-		UTILITY:
-}
-
-PLAN PERFORM test2($a, $c, $b){
-	id : "test1"
-	
+PLAN CONCLUDE WakeupService(){
+	id : "B"
 	body:
+		System.out.println("concludeCalled");
 		
-		System.out.println("test");
-		
-	PRECONDITION:
-		fact state();
+		post achieve WakeupServicePerformed();
 
-	CONTEXT:
-		
-		
 }
 
-plan perform test($x,$y){
-	id : "test2"
 
-	precondition:
-		fact test($a, $b, $c);	
 
+PLAN ACHIEVE WakeupServicePerformed(){
+	id : "C"
 	body:
-		
-		System.out.println("test");
-		
-	PRECONDITION:
-	CONTEXT:
-		
+		System.out.println("performed");
 		
 }
-

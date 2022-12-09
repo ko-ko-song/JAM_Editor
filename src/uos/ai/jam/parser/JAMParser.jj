@@ -104,8 +104,6 @@ import kr.ac.uos.ai.editor.jamEditor.ErrorInformation;
 public class JAMParser {
 	private ClassLoaderEX				_loader = new ClassLoaderEX();
 	//editor
-	public static String fileName = "";
-
 	/**
 	 * Command-line interface to parser to facilitate testing.
 	 */
@@ -151,6 +149,7 @@ public class JAMParser {
 	 * Primary JAM interface to parser
 	 */
 	public static Interpreter buildInterpreter(String buf) {
+	  	
 		JAMParser parser;
 		System.out.println("JAM Parser Version 0.70: ");
 		parser = new JAMParser(new ByteArrayInputStream(buf.getBytes()));
@@ -227,7 +226,7 @@ public class JAMParser {
 		}
 	}
 
-
+	
 
 
 
@@ -242,18 +241,23 @@ public class JAMParser {
 	  IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
 	  if(file.getFileExtension() == null)
 	  	return null;
+
+	  if(interpreter == null) {
+	    interpreter = new Interpreter();
+	    interpreter.set_fileName(fileFullpath);
+	  }
 	    
 	  return (Interpreter)JAMParser.parseFile(interpreter, file);
 	}
 	
 	public static Interpreter parseFile(Interpreter interpreter, IFile file) {
-	  	if(interpreter == null)
+	  	if(interpreter == null) {
 	  		interpreter = new Interpreter();
+	  		interpreter.set_fileName(file.getFullPath().toString());
+	  	}
 		if (file == null) return null;
 		InputStream is = null;
 //		System.out.println("parse file " + file);
-		
-		fileName = file.getFullPath().toString();
 		
 		try {
 		  is = file.getContents();
@@ -269,11 +273,11 @@ public class JAMParser {
 	
 		try {
 		  	Interpreter interpreter2 = (Interpreter)parser.ParseJamAgentDefinition(interpreter);
-		  	if(interpreter != null)
-		  		System.out.println("JAM parser : " + fileName+ " JAM File parse successful."); 
+//		  	if(interpreter != null)
+//		  		System.out.println("JAM parser : " + fileName+ " JAM File parse successful."); 
 
-			else
-				System.out.println("JAM parser : " + fileName+ " JAM File parse fail.");
+//			else
+//				System.out.println("JAM parser : " + fileName+ " JAM File parse fail.");
 		  	
 			return interpreter2;
 			 
@@ -287,11 +291,46 @@ public class JAMParser {
 			return null;
 		}
 	}
+	
+	public static Interpreter parseDocument(Interpreter interpreter, String doc) {
+	   	if(interpreter == null) {
+	  		interpreter = new Interpreter();
+	  		interpreter.set_fileName("");
+	  	}
+		if (doc == null) return null;
+		
+	
+		JAMParser parser;
+		parser = new JAMParser(new ByteArrayInputStream(doc.getBytes()));
+	
+		try {
+		  	Interpreter interpreter2 = (Interpreter)parser.ParseJamAgentDefinition(interpreter);
+//		  	if(interpreter != null)
+//		  		System.out.println("JAM parser : " + fileName+ " JAM File parse successful."); 
+
+//			else
+//				System.out.println("JAM parser : " + fileName+ " JAM File parse fail.");
+		  	
+			return interpreter2;
+			 
+		} catch (ParseException e) {
+//       		System.out.println("Encountered parse exception " + e + " during parse.");
+//			e.printStackTrace();
+			return null;
+		} catch (Exception e) {
+//			System.out.println("Encountered other exception " + e + " during parse.");
+//			e.printStackTrace();
+			return null;
+		}
+	}
+	
 
 	public static ErrorInformation parseStringForErrorDetection(Interpreter interpreter, String buf) {
 		JAMParser parser;
-		if(interpreter == null)
+	 	if(interpreter == null) {
 	  		interpreter = new Interpreter();
+	  		interpreter.set_fileName("");
+	  	}
 
 		parser = new JAMParser(new ByteArrayInputStream(buf.getBytes()));
 	
@@ -301,7 +340,7 @@ public class JAMParser {
 			return null;
 		} catch (ParseException e) {
 			ErrorInformation info = new ErrorInformation();
-			System.out.println("expected token sequence : ------  " + e.expectedTokenSequences);
+//			System.out.println("expected token sequence : ------  " + e.expectedTokenSequences);
 			info.setExpectedTokens(e.expectedTokenSequences);
 			info.setTokenImage(e.tokenImage);
 			info.setCurrentToken(parser.token);
@@ -316,6 +355,10 @@ public class JAMParser {
 	}
 
 	public static GoalAction parseAction(String string, Interpreter interpreter) {
+	   	if(interpreter == null) {
+	  		interpreter = new Interpreter();
+	  		interpreter.set_fileName("");
+	  	}
 		JAMParser parser;
 
 		parser = new JAMParser(new ByteArrayInputStream(string.getBytes()));
@@ -331,9 +374,11 @@ public class JAMParser {
 	}
 
 	public static Map<String, String> parsePrefixes(String string) {
+	 
 		JAMParser parser;
 		parser = new JAMParser(new ByteArrayInputStream(string.getBytes()));
 		Interpreter interpreter = new Interpreter();
+  		interpreter.set_fileName("");
 		   try {
 					interpreter = (Interpreter)parser.parsePrefixes(interpreter);
 				} catch (ParseException e) {
@@ -678,7 +723,7 @@ Prefix prefix_owl(SymbolTable symbol_table, Interpreter interpreter) :
 	traceToken = <PREFIX> id = <IDENTIFIER> ":"
 	{
 	  Prefix prefix = new Prefix(id.image);
-	  prefix.set_fileName(fileName);
+	  prefix.set_fileName(interpreter.get_fileName());
 	  prefix.set_line(traceToken.beginLine);
 	  return prefix;
 	}
@@ -719,6 +764,9 @@ void fact(Interpreter interpreter) :
 	<FACT> relation=relation(null, interpreter) ";"
 	{
 		interpreter.getWorldModel().assertFact(relation, null);
+
+		//editor
+		interpreter.addWorldModelCandidateRelation(relation);
 	}
 }
 
@@ -764,7 +812,7 @@ Plan plan(Interpreter interpreter) :
 		plan_components(plan, interpreter)	
 	"}"
 	{
-	    plan.set_fileName(fileName);
+	    plan.set_fileName(interpreter.get_fileName());
 	    plan.set_line(traceToken.beginLine);
 		plan.setGoalSpecification(goalAction);
 		plan.setConcludeSpecification(relation);
@@ -1765,7 +1813,7 @@ Relation relation(SymbolTable symbolTable, Interpreter interpreter) :
 		    	
 		    	//editor
 		    	Relation r = interpreter.getWorldModel().newRelation(relation_name, el);
-		    	r.set_fileName(this.fileName);
+		    	r.set_fileName(interpreter.get_fileName());
 		    	r.set_line(prefi.beginLine);
 		    	r.set_beginColumn(prefi.beginColumn);
 	  			return r;
@@ -1773,7 +1821,7 @@ Relation relation(SymbolTable symbolTable, Interpreter interpreter) :
 	  		  	id = prefi;
 	  		  	//editor
 				Relation r = interpreter.getWorldModel().newRelation(id.image, el);
-		    	r.set_fileName(this.fileName);
+		    	r.set_fileName(interpreter.get_fileName());
 		    	r.set_line(prefi.beginLine);
 		    	r.set_beginColumn(prefi.beginColumn);
 				return r;

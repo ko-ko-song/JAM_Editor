@@ -1,0 +1,38 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+plan conclude StudentsGreeted(){
+	ID: "http://www.uos.ac.kr//EducationService/StudentGreeted"
+	body:
+		perform isro:startLog("conclude", "education:StudentsGreeted");
+		retract StudentsGreeted();
+		
+		post achieve education:StudentsGreeted();
+		
+		perform isro:endLog("conclude", "education:StudentsGreeted");
+	utility: 20000;
+}
+
+plan achieve education:StudentsGreeted(){
+	ID: "http://www.uos.ac.kr//EducationService/StudentGreeted2"
+	precondition:
+		fact currentClass($id,$name,$startTime,$endTime);
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:StudentsGreeted");
+		
+		perform education:CheckStudents();
+
+		perform education:SpeakGreeting();
+		perform education:FinalizeService("StudentsGreeted");
+		
+		perform isro:endLog("achieve", "education:StudentsGreeted");
+	utility : 1000;
+	
+}

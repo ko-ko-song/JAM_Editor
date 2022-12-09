@@ -1,0 +1,22 @@
+PREFIXES:
+		PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+PLAN PERFORM isro:RequestSpeak($content){
+	ID: "http://www.arbi.com//RequestSpeak"
+	PRECONDITION:
+		FACT Communication($communicationInstance);
+		FACT isro:BehaviorAddress($address);
+		FACT GLUtility($utility);
+	BODY:
+		PERFORM isro:startLog("PERFORM", "RequestSpeak");
+		 
+		
+		$content = $utility.removeQuotationMarks($content);
+		$communicationInstance.request($address, "(requestSpeak (textToSpeech \"" +  $content + "\"))");
+		
+		WAIT speakCompleted;
+		RETRACT speakCompleted;
+			
+		PERFORM isro:endLog("PERFORM", "RequestSpeak");
+	UTILITY: 30000;
+}

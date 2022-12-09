@@ -1,0 +1,133 @@
+PREFIXES:
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+/**
+ * @package_name	: common
+ * @filename		: log.jam
+ * @author			: �ֺ���
+ * @created_date	: 2011-03-15
+ * @updated_date	: 
+ *
+ * 
+ */
+ 
+
+
+PLAN PERFORM isro:startLog($behave, $name) {
+	id: "12"
+	NAME:
+		"Start Log"
+	
+	PRECONDITION:
+		FACT LOG;
+		
+	BODY:
+		System.out.println("JAM PLAN "+$behave+" "+$name);
+		
+}  
+PLAN PERFORM isro:startLog($behave, $name) {
+	id: "2"
+	NAME:
+		"Start Log"
+	
+	PRECONDITION:
+	
+	UTILITY:-1;
+		
+	BODY:
+		
+}
+
+PLAN PERFORM isro:endLog($behave, $name) {
+	id: "3"
+	NAME:
+		"end Log"
+	
+	PRECONDITION:
+		FACT LOG;
+		
+	BODY:
+		System.out.println("JAM PLAN "+$behave+" "+$name+"EXECUTED");
+		
+}
+PLAN PERFORM isro:endLog($behave, $name) {
+	id: "4"
+	NAME:
+		"end Log"
+	
+	PRECONDITION:
+	
+	UTILITY:-1;
+		
+	BODY:
+		
+}
+PLAN PERFORM isro:argumentLog($argument, $value){
+	id: "5"
+	NAME:
+		"argument Log"
+	
+	PRECONDITION:
+		FACT LOG;
+		
+	BODY:
+		System.out.println("	"+$argument+" : "+ $value);
+		
+}
+PLAN PERFORM isro:argumentLog($argument, $value) {
+	id: "6"
+	NAME:
+		"argument Log"
+	
+	PRECONDITION:
+		
+	UTILITY:-1;
+		
+	BODY:
+		
+}
+PLAN PERFORM isro:planNotSatisfied(){
+	id: "7"
+	PRECONDITION:
+		FACT LOG;
+	BODY:
+		System.out.println("	Plan Precondition not Satisfied");	
+}
+PLAN PERFORM isro:planNotSatisfied(){
+	ID: "http://www.arbi.com//planNotSatisfied"
+	
+	UTILITY:-1;
+	BODY:
+}
+
+PLAN PERFORM isro:loadFail(){
+	ID: "http://www.arbi.com//loadFail"
+
+	PRECONDITION:
+		FACT LOG;
+	BODY:
+		System.out.println("	DataBase is not Loaded");
+}
+
+PLAN PERFORM isro:loadFail(){
+	ID: "http://www.arbi.com//loadFai2"
+	UTILITY:-1;
+	BODY:
+}
+
+PLAN PERFORM isro:expressionNotSupport(){
+	ID: "http://www.arbi.com//expressionNotSupport"
+
+	PRECONDITION:
+		FACT LOG;
+	BODY:
+		System.out.println("	Behavior Expression is not Support");
+}
+
+PLAN PERFORM isro:expressionNotSupport(){
+	ID: "http://www.arbi.com//expressionNotSupport2"
+
+	UTILITY:-1;
+	BODY:
+}

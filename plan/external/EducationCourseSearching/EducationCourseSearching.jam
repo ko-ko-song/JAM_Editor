@@ -1,0 +1,49 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+	
+	
+plan conclude EducationCourseFound($person, $class){
+	ID: "http://www.uos.ac.kr//EducationService/EducationCourseFound" 
+
+	body:
+		perform isro:startLog("conclude", "education:EducationCourseFound");
+		
+		retract education:EducationCourseFound($person,$class);
+		retract education:RequestEducationCourse($person);
+		retract education:FinalizeService("ExternalKnowledgeAnswering");
+		
+		post achieve education:EducationCourseFound($person, $class);
+		
+		retract EducationCourseFound($person, $class);
+		perform isro:endLog("conclude", "education:EducationCourseFound");
+}
+
+
+plan achieve education:EducationCourseFound($person,$class){ 
+ID: "http://www.uos.ac.kr//EducationService/EducationCourseFound2"
+	precondition:
+		 
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:EducationCourseFound");
+		achieve education:RequestEducationCourse($person);
+		perform education:EducationCourseNotified($person);
+		achieve education:FinalizeService("ExternalKnowledgeAnswering");
+		perform isro:endLog("achieve", "education:EducationCourseFound");
+}		
+
+
+plan achieve WakeupServicePerformed(){
+ID: "http://www.uos.ac.kr//EducationService/WakeupServeiPerformed"	
+	body:
+		perform isro:startLog("perform", "WakeupServicePerformed");
+		
+		perform isro:endLog("perform", "WakeupServicePerformed");
+	utility: 10000;
+}
+ 

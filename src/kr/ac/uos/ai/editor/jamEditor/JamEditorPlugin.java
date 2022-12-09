@@ -67,39 +67,39 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		super();
 		plugin = this;
 		jamEditorModel = EditorModel.getInstance();
+		initMarker();
 		initFileEventListener();
-//		initMarker();
 		System.out.println("-------- Jam editor Activate");
 	}
 
-//	private void initMarker() {
-//		Job markerJob = null;
-//		
-//		IPath path = new Path("testing/plan");
-//		IResource adapter = ResourcesPlugin.getWorkspace().getRoot().getFolder(path).getAdapter(IResource.class);
-//				
-//		markerJob = Job.create("remove Markers", (ICoreRunnable) monitor -> {
-//			List<IMarker> problemMarkers = Arrays.asList(adapter.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE));
-//			List<IMarker> bookmarkMarkers = Arrays.asList(adapter.findMarkers(IMarker.BOOKMARK, true, IResource.DEPTH_INFINITE));
-//			List<IMarker> taskMarkMarkers = Arrays.asList(adapter.findMarkers(IMarker.TASK, true, IResource.DEPTH_INFINITE));
-//			
-//			List<IMarker> markers = new ArrayList<IMarker>();
-//			if(problemMarkers != null)
-//				markers.addAll(problemMarkers);
-//			if(bookmarkMarkers != null)
-//				markers.addAll(bookmarkMarkers);
-//			if(taskMarkMarkers != null)
-//				markers.addAll(taskMarkMarkers);
-//			
-//			for (IMarker iMarker : markers) {
-//				iMarker.delete();
-//			}
-//		});
-//		markerJob.setUser(false);
-//		markerJob.setPriority(Job.DECORATE);
-//		markerJob.schedule(100);
-//		
-//	}
+	private void initMarker() {
+		Job markerJob = null;
+		
+		IResource adapter = ResourcesPlugin.getWorkspace().getRoot().getAdapter(IResource.class);
+				
+		markerJob = Job.create("remove Markers", (ICoreRunnable) monitor -> {
+			List<IMarker> problemMarkers = Arrays.asList(adapter.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE));
+			List<IMarker> bookmarkMarkers = Arrays.asList(adapter.findMarkers(IMarker.BOOKMARK, true, IResource.DEPTH_INFINITE));
+			List<IMarker> taskMarkMarkers = Arrays.asList(adapter.findMarkers(IMarker.TASK, true, IResource.DEPTH_INFINITE));
+			
+			List<IMarker> markers = new ArrayList<IMarker>();
+			if(problemMarkers != null)
+				markers.addAll(problemMarkers);
+			if(bookmarkMarkers != null)
+				markers.addAll(bookmarkMarkers);
+			if(taskMarkMarkers != null)
+				markers.addAll(taskMarkMarkers);
+			
+			for (IMarker iMarker : markers) {
+				if(iMarker != null)
+					iMarker.delete();
+			}
+		});
+		markerJob.setUser(false);
+		markerJob.setPriority(Job.DECORATE);
+		markerJob.schedule(10);
+		
+	}
 
 	public static JamEditorPlugin getDefault() {
 		return plugin;
@@ -111,21 +111,21 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 	
 	public void initEditorModel(String projectName) {
 		jamEditorModel.init(projectName);
-		List<String> AllJamFiles = this.getAllJamFiles(projectName + "/plan");
+		List<String> AllJamFiles = this.getAllJamFiles(jamEditorModel.getPlanPath());
 		for (String jamFilePath : AllJamFiles) {
+		
 			 Interpreter interpreter = JAMParser.parseFile(null, jamFilePath);
-
-			 if(interpreter == null)
-				try {
-					this.updateErrorMarker(jamFilePath);
-				} catch (CoreException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			else {
+			 if(interpreter != null) {
 				 jamEditorModel.addFileContentToModel(interpreter);
 			 }
+			 
+			 try {
+					this.updateErrorMarker(null, jamFilePath);
+				}catch (CoreException e) {
+					e.printStackTrace();
+				}
 		}
+		
 		try {
 			updateRelationWarningMarker();
 		} catch (CoreException e) {
@@ -163,11 +163,11 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		jamEditorModel.deleteFileContentFromModel(fileFullpath);
 		jamEditorModel.addFileContentToModel(interpreter);
 		try {
-			this.updateRelationWarningMarker();
+			this.updateMarkers(fileFullpath);
 		} catch (CoreException e) {
 //			e.printStackTrace(); 
 		}
-		jamEditorModel.printEditorModel();
+//		jamEditorModel.printEditorModel();
 	}
  
 	public void addFileEvent(String fileFullpath) {
@@ -213,28 +213,28 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		return files;
 	}
 	
-	
-	
+	public void updateMarkers(String filePath) throws CoreException {
+		updateErrorMarker(null, filePath);
+		updateRelationWarningMarker();
+	}
 	
 	private void updateRelationWarningMarker() throws CoreException{
-		List<Relation> relations = this.getNotExistRelations(jamEditorModel.getProjectName() + "/plan");
+		List<Relation> relations = this.getNotExistRelations(jamEditorModel.getPlanPath());
 		if(relations == null)
 			return;
 		
 		Job markerJob = null;
 		
-		IPath path = new Path(jamEditorModel.getProjectName() + "/plan");
+		IPath path = new Path(jamEditorModel.getPlanPath());
 		IResource adapter = ResourcesPlugin.getWorkspace().getRoot().getFolder(path).getAdapter(IResource.class);
-				
+		
 		markerJob = Job.create("update Warning Marker", (ICoreRunnable) monitor -> {
 			
-			adapter.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
-//			List<IMarker> markers = Arrays.asList(adapter.findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE));
-//			for (IMarker iMarker : markers) {
-//				if(iMarker.getAttribute(IMarker.SEVERITY).equals(IMarker.SEVERITY_WARNING))
-//					if(iMarker.exists())
-//						iMarker.delete();
-//			}
+			List<IMarker> markers = Arrays.asList(adapter.findMarkers(IMarker.PROBLEM, true, 0));
+			for (IMarker iMarker : markers) {
+				if(iMarker != null && iMarker.getAttribute(IMarker.SEVERITY, -999)== IMarker.SEVERITY_WARNING)
+					iMarker.delete();
+			}
 			
 			for (Relation relation : relations) {
 				String fileName = relation.get_fileName();
@@ -252,7 +252,7 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 				da.readInputStream(file.getContents());
 				
 				int start = da.getLineOffset(line - 1);
-				int end = da.getLineOffset(line);
+				int end = da.getLineOffset(line) - 1;
 				
 				while(da.charAt(start) == ' ' || da.charAt(start) == '\t'){                                   
 				    start++;
@@ -265,62 +265,207 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		});
 		markerJob.setUser(false);
 		markerJob.setPriority(Job.DECORATE);
-		markerJob.schedule(500);
+		markerJob.schedule(200);
+	}
+	
+	public void updateErrorMarker(DocumentEvent event, String filePath) throws CoreException {
+		updatePlanIdErrorMarker(event, filePath);
+		updateSyntaxErrorMarker(event, filePath);
+	}
+	
+	public void updatePlanIdErrorMarker(DocumentEvent event, String filePath) throws CoreException {
+		IPath path = new Path(filePath);
+		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+		Job updateErrorMarkerJob = Job.create("update plan id Error Marker", (ICoreRunnable) monitor -> {
+			deletePlanIdErrorMarks(file);
+			addPlanIDErrorMark(event, file);
+		});
+		updateErrorMarkerJob.setUser(false);
+		updateErrorMarkerJob.setPriority(Job.DECORATE);
+		updateErrorMarkerJob.schedule(100);
 	}
 	
 	
-	private void updateErrorMarker(String filePath) throws CoreException {
-		
+	private void deletePlanIdErrorMarks(IFile file) throws CoreException {
+		List<IMarker> markers = Arrays.asList(file.findMarkers(IMarker.PROBLEM, true, 0));
+		for (IMarker iMarker : markers) {
+			if(iMarker!= null) {
+				if(iMarker.getAttribute("isPlanIdError", false))
+					iMarker.delete();
+			}
+		}
+	}
+
+	public void updateSyntaxErrorMarker(DocumentEvent event, String filePath) throws CoreException {
 		IPath path = new Path(filePath);
 		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
-		String fileContent = changeInputStreamToString(file.getContents());
+		Job updateErrorMarkerJob = Job.create("update syntax Error Marker", (ICoreRunnable) monitor -> {
+			deleteSyntaxErrorMarks(file);
+			addSyntaxErrorMark(event, file);
+		});
+		updateErrorMarkerJob.setUser(false);
+		updateErrorMarkerJob.setPriority(Job.DECORATE);
+		updateErrorMarkerJob.schedule(500);
+	}
+	
+	private void deleteSyntaxErrorMarks(IFile file) throws CoreException {
+		List<IMarker> markers = Arrays.asList(file.findMarkers(IMarker.PROBLEM, true, 0));
+		for (IMarker iMarker : markers) {
+			if(iMarker!= null) {
+				if(iMarker.getAttribute("isSyntaxError", false))
+					iMarker.delete();
+			}
+		}
+	}
+	
+	private boolean addSyntaxErrorMark(DocumentEvent event, IFile file) throws CoreException {
 		
+		String fileContent;
+		
+		if(event == null)
+			fileContent = this.changeInputStreamToString(file.getContents());
+		else
+			fileContent = event.getDocument().get();
+
 		ErrorInformation information = JAMParser.parseStringForErrorDetection(null, fileContent);
 		
-		Job markerJob = null;
-		markerJob = Job.create("update Error Marker", (ICoreRunnable) monitor -> {
-			file.deleteMarkers(IMarker.PROBLEM, true, 0);
-//			List<IMarker> markers = Arrays.asList(file.findMarkers(IMarker.PROBLEM, true, 0));
-//			for (IMarker iMarker : markers) {
-//				if(iMarker.getAttribute(IMarker.SEVERITY).equals(IMarker.SEVERITY_ERROR))
-//					iMarker.delete();
-//			}
-			
-			if(information==null)
-				return;
-			
-			List<String> expectedTokens = information.getExpectedTokenImages();
-			
-			String errorMessage = "exptected tokens : \n";
-			for (String expectedToken : expectedTokens) {
-				errorMessage += expectedToken +"\n";
+		if(information==null)
+			return false;
+		
+		List<String> expectedTokens = information.getExpectedTokenImages();
+		
+		String errorMessage = "exptected tokens : \n";
+		for (String expectedToken : expectedTokens) {
+			errorMessage += expectedToken +"\n";
+		}
+		int line = information.getCurrentToken().beginLine;
+		
+		IMarker marker = file.createMarker(IMarker.PROBLEM);
+		
+		marker.setAttribute(IMarker.LINE_NUMBER, line);
+		marker.setAttribute(IMarker.MESSAGE, errorMessage);
+		marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+		marker.setAttribute("isSyntaxError", true);
+		
+		DocumentAssistor da = new DocumentAssistor();
+		da.readInputStream(file.getContents());
+		
+		int start = da.getLineOffset(line - 1);
+		int end = da.getLineOffset(line) - 1;
+		
+		while(da.charAt(start) == ' ' || da.charAt(start) == '\t'){                                   
+		    start++;
+		}
+		
+		marker.setAttribute(IMarker.CHAR_START, start);
+		marker.setAttribute(IMarker.CHAR_END, end);
+		return true;
+	}
+	
+	private void addPlanIDErrorMark(DocumentEvent event, IFile file) throws CoreException {
+		
+		Interpreter interpreter;
+		DocumentAssistor da= new DocumentAssistor();;
+		
+		if(event != null)
+			return;
+		
+//		if(event == null) {
+//			interpreter = JAMParser.parseFile(null, file);
+//			da.readInputStream(file.getContents());
+//		}
+//		else {
+//			interpreter = JAMParser.parseDocument(null, event.getDocument().get());
+//			da.readString(event.getDocument().get());
+//		}
+//			
+		interpreter = JAMParser.parseFile(null, file);
+		da.readInputStream(file.getContents());
+		
+		if(interpreter == null)
+			return;
+		
+		List<Plan> plans = new LinkedList<Plan>();
+		
+		plans.addAll(interpreter.getPlanLibrary().getGoalSpecPlans());
+		plans.addAll(interpreter.getPlanLibrary().getConcludePlans());
+		
+		List<Plan> undefinedIdPlans = new LinkedList<Plan>();
+		List<Plan> duplicatedIdPlans = new LinkedList<Plan>();
+		for (Plan plan : plans) {
+			if(plan.getId() == null) {
+				undefinedIdPlans.add(plan);
 			}
-			int line = information.getCurrentToken().beginLine;
-			
+			else if(isDuplicatedId(plan)){
+				duplicatedIdPlans.add(plan);
+			}
+		}
+		
+		for (Plan plan : undefinedIdPlans) {
 			IMarker marker = file.createMarker(IMarker.PROBLEM);
-			
-			marker.setAttribute(IMarker.LINE_NUMBER, line);
-			marker.setAttribute(IMarker.MESSAGE, errorMessage);
-			marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-			
-			DocumentAssistor da = new DocumentAssistor();
-			da.readInputStream(file.getContents());
-			
-			int start = da.getLineOffset(line - 1);
-			int end = da.getLineOffset(line);
-			
-			while(da.charAt(start) == ' ' || da.charAt(start) == '\t'){                                   
-			    start++;
+			if(marker.exists()){
+				int line = plan.get_line();
+				
+				marker.setAttribute(IMarker.LINE_NUMBER, line);
+				marker.setAttribute(IMarker.MESSAGE, "plan id undefined");
+				marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+				marker.setAttribute("isPlanIdError", true);
+
+				
+				int start = da.getLineOffset(line - 1);
+				int end = da.getLineOffset(line) - 1;
+				
+				while(da.charAt(start) == ' ' || da.charAt(start) == '\t'){                                   
+				    start++;
+				}
+				
+//				System.out.println("------------------undefined : " + plan.getGoalSpecification());
+				
+				marker.setAttribute(IMarker.CHAR_START, start);
+				marker.setAttribute(IMarker.CHAR_END, end);
 			}
+		}
+		
+		for (Plan plan : duplicatedIdPlans) {
+			IMarker marker = file.createMarker(IMarker.PROBLEM);
+			if(marker.exists()){
+				int line = plan.get_line();
+				
+				marker.setAttribute(IMarker.LINE_NUMBER, line);
+				marker.setAttribute(IMarker.MESSAGE, "plan id duplicated");
+				marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+				marker.setAttribute("isPlanIdError", true);
+
+				
+//				System.out.println("------------------duplicated : " + plan.getGoalSpecification());
+				
+				int start = da.getLineOffset(line - 1);
+				int end = da.getLineOffset(line) - 1;
+				
+				while(da.charAt(start) == ' ' || da.charAt(start) == '\t'){                                   
+				    start++;
+				}
+				
+				marker.setAttribute(IMarker.CHAR_START, start);
+				marker.setAttribute(IMarker.CHAR_END, end);
+			}
+		}
+	}
+	
+	private boolean isDuplicatedId(Plan plan) {
+		if(plan == null)
+			return false;
+		
+		for (Plan p: jamEditorModel.getPlanManager().getAllPlans()) {
 			
-			marker.setAttribute(IMarker.CHAR_START, start);
-			marker.setAttribute(IMarker.CHAR_END, end);
-			
-			
-		});
-		markerJob.setUser(false);
-		markerJob.setPriority(Job.DECORATE);
-		markerJob.schedule(500);
+			if(plan.getId() != null && p.getId().equals(plan.getId())) {
+				if(plan.get_fileName().contentEquals(p.get_fileName()) && plan.get_line() == p.get_line()) {
+					continue;
+				}
+					return true;
+			}
+		}
+		return false;
 	}
 	
 	

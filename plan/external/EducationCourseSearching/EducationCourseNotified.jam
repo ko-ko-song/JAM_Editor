@@ -1,0 +1,67 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+plan achieve education:EducationCourseNotified($person){
+	ID: "http://www.uos.ac.kr//EducationService/EducationCourseNotified1" 
+
+	precondition: 
+		fact appropreateClass($person,$class);
+		$class == "null";
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:EducationCourseNotified");
+		$intention = "Announce(\"�뼱瑜댁떊\",\"�떎�쓬_�닔�뾽\",\"unknown\",\"none\")";
+		$argument = "(argument \"http://www.robot-arbi.kr/ontologies/isro_social.owl#_OldAge\")";
+		perform isro:SpeakTo($id,$intention,$argument);
+		
+		perform isro:endLog("achieve", "education:EducationCourseNotified");
+	Utility : 1000;
+}
+
+plan achieve education:EducationCourseNotified($person,$answer){
+	ID: "http://www.uos.ac.kr//EducationService/EducationCourseNotified2" 
+
+	precondition:
+		fact appropreateClass($person,$class);
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability"); 
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:EducationCourseNotified");
+		
+		$intention = "Announce(\"�뼱瑜댁떊\",\"�떎�쓬_�닔�뾽\",\"" + $class + "\",\"none\")";
+		$argument = "(argument \"http://www.robot-arbi.kr/ontologies/isro_social.owl#_OldAge\")";
+		perform isro:SpeakTo($id,$intention,$argument);
+		
+		perform isro:endLog("achieve", "education:EducationCourseNotified");
+}
+ 
+ 
+       
+
+plan achieve education:EducationCourseNotified($person,$answer){
+	ID: "http://www.uos.ac.kr//EducationService/EducationCourseNotified3" 
+
+	precondition:
+		fact notStudent($person);
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:AnswerQuestion");
+		
+		perform isro:SpeakTo($id,"AnnounceIsStudent");
+		
+		perform isro:endLog("achieve", "education:AnswerQuestion");
+	UTILITY : 2000;
+}
+           

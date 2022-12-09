@@ -1,0 +1,33 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+plan conclude StudentsSilenced(){
+	ID: "http://www.uos.ac.kr//EducationService/StudentSilenced"
+	body:
+		perform isro:startLog("conclude", "StudentsSilenced");
+		
+		retract education:StudentsSilenced();
+		post achieve education:StudentsSilenced();
+		retract StudentsSilenced();
+		
+		perform isro:endLog("conclude", "StudentsSilenced");
+	utility : 30000;
+}
+
+plan achieve education:StudentsSilenced(){
+	ID: "http://www.uos.ac.kr//EducationService/StudentSilenced2"
+	precondition:
+		fact Position($id,$x,$y,$z);
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:StudentsSilenced");
+		
+		perform isro:SpeakTo($id,"calmDown","(argument \"http://www.robot-arbi.kr/ontologies/isro_social.owl#_OldAge\")");
+		
+		perform isro:endLog("achieve", "education:StudentsSilenced");
+}

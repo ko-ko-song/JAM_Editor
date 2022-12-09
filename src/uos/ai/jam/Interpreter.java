@@ -399,4 +399,32 @@ public class Interpreter implements Serializable {
 	public void setPlanFolder(String s) {
 		new PlanManager(s, this);
 	}
+	
+	
+	
+	
+	
+	
+	
+	//editor
+	private List<Relation> worldModelCandidateRelations = new LinkedList<Relation>();
+
+	private String _fileName;
+	
+	public List<Relation> getWorldModelCandidatesRelations(){
+		return this.worldModelCandidateRelations;
+	}
+	
+	public void addWorldModelCandidateRelation(Relation r) {
+		this.worldModelCandidateRelations.add(r);
+	}
+
+	public void set_fileName(String fileName) {
+		this._fileName = fileName;
+		
+	}
+	public String get_fileName() {
+		return this._fileName;
+	}
+	
 }

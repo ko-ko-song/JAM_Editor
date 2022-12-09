@@ -1,0 +1,24 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+plan achieve education:AnswerQuestion($s,$p,$answer){
+	ID: "http://www.uos.ac.kr//EducationService/AnswerQuestion"	
+
+	precondition:
+		fact Position($id, $x ,$y, $z);
+		fact GLUtility($glUtility);
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:AnswerQuestion");
+		System.out.println("answer : " + $answer);
+		$argument = "(argument \"http://www.robot-arbi.kr/ontologies/isro_social.owl#_OldAge\")";
+		perform isro:SpeakTo($id,"Announce(\"" + $s + "\" , \"" + $p + "\" , \"" + $answer + "\", \"none\")", $argument);
+		
+		perform isro:endLog("achieve", "education:AnswerQuestion");
+}

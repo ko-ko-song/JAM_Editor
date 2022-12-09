@@ -1,0 +1,16 @@
+PREFIXES:
+		PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+ 
+PLAN CONCLUDE SpeakAgain(){
+	ID: "http://www.arbi.com//RequestSpeakAgain"
+ 
+	PRECONDITION:
+	BODY:
+		PERFORM isro:startLog("CONCLUDE", "SpeakAgain");
+		PERFORM isro:STTRequest("off");
+		PERFORM isro:RequestSpeak("�떎�떆 留먯��빐二쇱꽭�슂");
+		PERFORM isro:STTRequest("on");
+		retract SpeakAgain();
+		PERFORM isro:endLog("CONCLUDE", "SpeakAgain");
+	UTILITY: 30000;
+}

@@ -1,0 +1,26 @@
+PREFIXES:
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+PLAN PERFORM  isro:RequestPath($location, $path){
+	ID: "http://www.arbi.com//RequestPath" 
+ 
+	PRECONDITION:
+		FACT Communication($communicationInstance);
+		FACT KnowledgeManagerAddress($address);
+		FACT robotPosition($x, $y, $z);
+	BODY:
+		PERFORM  isro:startLog("PERFORM", "RequestSpeak");
+		$robotPosition = "(startPosition " + $x + " " + $y + " " + $z + ")";
+		$communicationInstance.request($address, "(RequestRoute $robotPosition $location)");
+		
+		WAIT actionCompleted($result);
+		RETRACT actionCompleted($result);
+		
+
+		
+		PERFORM  isro:endLog("PERFORM", "RequestSpeak");
+	UTILITY: 30000;
+}
+
+

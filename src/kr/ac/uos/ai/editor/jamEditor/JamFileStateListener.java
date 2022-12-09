@@ -26,8 +26,12 @@ public class JamFileStateListener implements IPartListener{
 		
 		String projectName = activeEditor.getEditorInput().getAdapter(IResource.class).getProject().getName();
 		EditorModel jamEditorModel = jamEditorPlugin.getEditorModel();
-		if(!projectName.equals(jamEditorModel.getProjectName()))
+		if(!projectName.equals(jamEditorModel.getProjectName())) {
+//			System.out.println("pr name : " + projectName);
+//			System.out.println("editorModel name : " + jamEditorModel.getProjectName());
 			jamEditorPlugin.initEditorModel(projectName);
+		}
+			
 		
 	}
 
@@ -51,8 +55,12 @@ public class JamFileStateListener implements IPartListener{
 		
 		String projectName = activeEditor.getEditorInput().getAdapter(IResource.class).getProject().getName();
 		EditorModel jamEditorModel = jamEditorPlugin.getEditorModel();
-		if(!projectName.equals(jamEditorModel.getProjectName()))
+		if(!projectName.equals(jamEditorModel.getProjectName())) {
+//			System.out.println("pr name : " + projectName);
+//			System.out.println("editorModel name : " + jamEditorModel.getProjectName());
 			jamEditorPlugin.initEditorModel(projectName);
+		}
+			
 		
 	}
 

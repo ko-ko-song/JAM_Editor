@@ -1,0 +1,24 @@
+PREFIXES:
+		PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+
+PLAN PERFORM isro:RequestMove($x, $y, $z){
+	ID: "http://www.arbi.com//RequestMove"
+	PRECONDITION:
+		FACT Communication($communicationInstance);
+		FACT isro:BehaviorAddress($address);
+		FACT GLUtility($glUtility);
+		
+		
+	BODY:
+		PERFORM isro:startLog("PERFORM", "RequestMove");
+  
+	
+		$communicationInstance.request($address, "(move (position " + $a + " " + $y + " " + $z + "))");
+	
+		WAIT actionCompleted;
+		RETRACT actionCompleted;
+		
+		PERFORM isro:endLog("PERFORM", "RequestMove");
+}
+     

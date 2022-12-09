@@ -1,0 +1,36 @@
+PREFIXES:
+		PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+PLAN PERFORM isro:RequestRotate($x, $y, $z){
+	ID: "http://www.arbi.com//RequestRotate"
+
+	PRECONDITION:
+		FACT Dialogue($dm);
+		FACT onTM;
+	BODY:
+		PERFORM isro:startLog("PERFORM", "RequestRotate(tm)");
+
+		$dm.rotate();
+		
+		
+		PERFORM isro:endLog("PERFORM", "RequestRotate(tm)");
+	UTILITY: 20000;
+}
+
+
+PLAN PERFORM isro:RequestRotate($x, $y, $z){
+	ID: "http://www.arbi.com//RequestRotate2"
+	PRECONDITION:
+		FACT Communication($communicationInstance);
+		FACT isro:BehaviorAddress($address);
+	BODY:
+		PERFORM isro:startLog("PERFORM", "RequestRotate");
+
+	
+		$communicationInstance.request($address, "(ahead (position " + $x + " " + $y + " " + $z + "))");
+	
+		WAIT actionCompleted;
+		RETRACT actionCompleted;
+		
+		PERFORM isro:endLog("PERFORM", "RequestRotate");
+}

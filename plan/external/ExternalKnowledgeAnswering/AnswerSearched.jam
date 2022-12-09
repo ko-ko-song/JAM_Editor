@@ -1,0 +1,21 @@
+PREFIXES:
+	PREFIX education: <http://www.uos.ac.kr//EducationService#>;
+	PREFIX isro: <http://www.arbi.com//BuiltInPlan#>;
+
+plan achieve education:AnswerSearched($s,$p,$answer){
+	ID: "http://www.uos.ac.kr//EducationService/AnswerSearched"
+	precondition:
+		FACT GLUtility($glUtility);
+	context :
+		fact isro:robot($robot);
+		fact isro:hasCapability($robot,"PerceptionModuleCapability");
+		fact isro:hasCapability($robot,"ContextInformationRequestCapability");
+		fact isro:hasCapability($robot,"KnowledgeInformationRequestCapability");
+	body:
+		perform isro:startLog("achieve", "education:AnswerSearched");
+		
+		//perform isro:QueryToKM($s,$p,"null",$result);
+		//$answer = $result;
+		$answer = "2018-09-23";
+		perform isro:endLog("achieve", "education:AnswerSearched");
+}

@@ -1,22 +1,11 @@
 package kr.ac.uos.ai.editor.jamEditor;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.eclipse.core.internal.resources.File;
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
@@ -25,11 +14,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
-import org.eclipse.ui.IEditorPart;
 
-import kr.ac.uos.ai.editor.jamEditor.util.DocumentAssistor;
-import kr.ac.uos.ai.editor.jamEditor.util.Util;
-import uos.ai.jam.Prefix;
 import uos.ai.jam.expression.Relation;
 import uos.ai.jam.parser.JAMParser;
 import uos.ai.jam.plan.Plan;
@@ -147,27 +132,20 @@ public class PlanContentAssistProcessor implements IContentAssistProcessor{
 		if(index != -1) {
 			try {
 				String c = document.get(index, document.getLength() - index);
-				System.out.println(c);
 				Map<String, String> prefixMap = JAMParser.parsePrefixes(c);
 				
-				System.out.println("null");
 				if(prefixMap != null) {
-					System.out.println("not null");
 					prefixedProposals = new LinkedList<String>();
 					for (String proposal : proposalList) {
 						boolean prefixed = false;
 						
 						for (Entry<String, String> entry : prefixMap.entrySet()) {
-							System.out.println("entry set : " + entry.getKey() + "  " + entry.getValue());
-							System.out.println(proposal);
 							if(proposal.contains(entry.getValue())) {
-								System.out.println("ex : " + proposal);
 								proposal = proposal.replace(entry.getValue(), entry.getKey()+":");
 								proposal = proposal.replace("<", "");
 								proposal = proposal.replace(">", "");
 								prefixedProposals.add(proposal);
 								prefixed = true;
-								System.out.println("af : " + proposal);
 								break;
 							}
 						}
@@ -201,17 +179,18 @@ public class PlanContentAssistProcessor implements IContentAssistProcessor{
     	List<Plan> plans = JamEditorPlugin.getDefault().getEditorModel().getPlanManager().getAllPlans();
 		List<String> proposals = new LinkedList<String>();
 		for (Plan plan : plans) {
-			Relation r =  plan.getGoalSpecification().getRelation();
+			Relation r;
+			if(plan.getGoalSpecification() != null)
+				r =  plan.getGoalSpecification().getRelation();
+			else
+				r = plan.getConcludeSpecification();
+			
 			List<String> argString = new LinkedList<String>();
 			for (int i = 0; i < r.getArity(); i++) {
 				argString.add(r.getArg(i).toString());
 			}
 			
 			proposals.add(r.getName() + "(" + String.join(", ", argString)  +")");
-			
-			//prefix
-			List<Prefix> prefixes = new LinkedList<Prefix>();
-			
 			
 		}
 		return proposals;
