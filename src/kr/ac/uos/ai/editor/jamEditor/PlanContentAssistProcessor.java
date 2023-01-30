@@ -22,8 +22,9 @@ import uos.ai.jam.plan.Plan;
 public class PlanContentAssistProcessor implements IContentAssistProcessor{
     public static List<String> goalActionProposals = Arrays.asList("perform", "achieve", "maintain", "conclude");
     public static List<String> worldModelActionProposals = Arrays.asList("fact", "retrieve", "retract", "update", "assert");
-    public static List<String> etcProposals = Arrays.asList("System.out.println()");
-    
+    public static List<String> etcProposals = Arrays.asList("plan", "System.out.println()");
+    public static List<String> planComponentProposals = Arrays.asList("ID:", "NAME:", "PRECONDITION:", "CONTEXT:", "BODY:", "UTILITY:");
+
     private String replacementText = "";
     private int replacementLength = 0;
     
@@ -78,6 +79,7 @@ public class PlanContentAssistProcessor implements IContentAssistProcessor{
 			proposalList.addAll(goalActionProposals);
 			proposalList.addAll(worldModelActionProposals);
 			proposalList.addAll(etcProposals);
+			proposalList.addAll(planComponentProposals);
 			//action ÃßÃµ
 			
 			for (String goalActionProposal : goalActionProposals) {
@@ -117,6 +119,10 @@ public class PlanContentAssistProcessor implements IContentAssistProcessor{
 					break;
 				}
 			}
+			
+			proposalList.addAll(goalActionProposals);
+			proposalList.addAll(worldModelActionProposals);
+			proposalList.addAll(planComponentProposals);
 			
 		}
 		else {

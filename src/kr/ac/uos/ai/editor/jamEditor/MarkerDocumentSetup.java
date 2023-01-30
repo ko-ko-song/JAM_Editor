@@ -46,7 +46,7 @@ public class MarkerDocumentSetup implements IDocumentSetupParticipant{
 					IResource adapter = editorInput.getAdapter(IResource.class);
 					
 					if(!adapter.getFileExtension().equalsIgnoreCase("jam")) {
-						System.out.println("MarkerDocumnetSetup : not jma file extension   " +  adapter.getName());
+						System.out.println("MarkerDocumnetSetup : not jam file extension   " +  adapter.getName());
 						return;
 					}
 					

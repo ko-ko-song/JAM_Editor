@@ -112,6 +112,10 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 	public void initEditorModel(String projectName) {
 		jamEditorModel.init(projectName);
 		List<String> AllJamFiles = this.getAllJamFiles(jamEditorModel.getPlanPath());
+		if(AllJamFiles == null) 
+			return;
+		
+		
 		for (String jamFilePath : AllJamFiles) {
 		
 			 Interpreter interpreter = JAMParser.parseFile(null, jamFilePath);
@@ -186,6 +190,9 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		
 		IPath path = new Path(fileFullpath);
 	  	IFolder folder = ResourcesPlugin.getWorkspace().getRoot().getFolder(path);
+	  	
+	  	if(folder == null)
+	  		return null;
 	  	
 	  	if(folder.getType() != IResource.FOLDER) {
 		  	System.out.println(fileFullpath + " is not folder " );
@@ -310,10 +317,16 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 	
 	private void deleteSyntaxErrorMarks(IFile file) throws CoreException {
 		List<IMarker> markers = Arrays.asList(file.findMarkers(IMarker.PROBLEM, true, 0));
+		if(markers == null)
+			return;
+		
 		for (IMarker iMarker : markers) {
 			if(iMarker!= null) {
-				if(iMarker.getAttribute("isSyntaxError", false))
+				if(iMarker.getAttribute("isSyntaxError", false)) {
+					System.out.println("a :" + iMarker);
 					iMarker.delete();
+					System.out.println("b :" + iMarker);
+				}
 			}
 		}
 	}
@@ -348,7 +361,7 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		marker.setAttribute("isSyntaxError", true);
 		
 		DocumentAssistor da = new DocumentAssistor();
-		da.readInputStream(file.getContents());
+		da.readString(fileContent);
 		
 		int start = da.getLineOffset(line - 1);
 		int end = da.getLineOffset(line) - 1;

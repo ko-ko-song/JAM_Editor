@@ -29,3 +29,6 @@ error trace
 프로젝트 별로 editor model이 다르거나, 지우고 새로 생성 택1 해야하는데 일단은 후자로 구현
 
 
+2023-01-30
+"update syntax error marker" 에서 에러가 발생
+plan, plan component도 자동완성으로 추천하도록 설정(rule 없이 그냥 start string 보고 추천)
