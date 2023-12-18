@@ -191,7 +191,7 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		IPath path = new Path(fileFullpath);
 	  	IFolder folder = ResourcesPlugin.getWorkspace().getRoot().getFolder(path);
 	  	
-	  	if(folder == null)
+	  	if(!folder.exists())
 	  		return null;
 	  	
 	  	if(folder.getType() != IResource.FOLDER) {
@@ -233,7 +233,21 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		Job markerJob = null;
 		
 		IPath path = new Path(jamEditorModel.getPlanPath());
-		IResource adapter = ResourcesPlugin.getWorkspace().getRoot().getFolder(path).getAdapter(IResource.class);
+		
+		IFolder planFolder = ResourcesPlugin.getWorkspace().getRoot().getFolder(path);  
+		
+		if(!planFolder.exists())
+			return;
+		System.out.println("full path " + planFolder.getFullPath());
+		System.out.println(planFolder.getName());
+		
+		IResource adapter = planFolder.getAdapter(IResource.class);
+		
+		if(adapter == null)
+			return;
+		
+		System.out.println(adapter.getName());
+		System.out.println("adapter : " + adapter);
 		
 		markerJob = Job.create("update Warning Marker", (ICoreRunnable) monitor -> {
 			
@@ -242,7 +256,6 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 				if(iMarker != null && iMarker.getAttribute(IMarker.SEVERITY, -999)== IMarker.SEVERITY_WARNING)
 					iMarker.delete();
 			}
-			
 			for (Relation relation : relations) {
 				String fileName = relation.get_fileName();
 				int line = relation.get_line();
