@@ -163,9 +163,17 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 	}
 	
 	public void changeFileEvent(String fileFullpath) {
-		Interpreter interpreter = JAMParser.parseFile(null, fileFullpath);
 		jamEditorModel.deleteFileContentFromModel(fileFullpath);
-		jamEditorModel.addFileContentToModel(interpreter);
+		try {
+			Interpreter interpreter = JAMParser.parseFile(null, fileFullpath);
+			if(interpreter != null) {
+				jamEditorModel.addFileContentToModel(interpreter);
+			}			
+		}catch (Exception e){
+			
+		}
+
+		
 		try {
 			this.updateMarkers(fileFullpath);
 		} catch (CoreException e) {
@@ -238,16 +246,11 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 		
 		if(!planFolder.exists())
 			return;
-		System.out.println("full path " + planFolder.getFullPath());
-		System.out.println(planFolder.getName());
 		
 		IResource adapter = planFolder.getAdapter(IResource.class);
 		
-		if(adapter == null)
+		if(!adapter.exists())
 			return;
-		
-		System.out.println(adapter.getName());
-		System.out.println("adapter : " + adapter);
 		
 		markerJob = Job.create("update Warning Marker", (ICoreRunnable) monitor -> {
 			
@@ -296,6 +299,10 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 	public void updatePlanIdErrorMarker(DocumentEvent event, String filePath) throws CoreException {
 		IPath path = new Path(filePath);
 		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+		if(!file.exists()) {
+			System.out.println("no file");
+			return;
+		}
 		Job updateErrorMarkerJob = Job.create("update plan id Error Marker", (ICoreRunnable) monitor -> {
 			deletePlanIdErrorMarks(file);
 			addPlanIDErrorMark(event, file);
@@ -319,10 +326,20 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 	public void updateSyntaxErrorMarker(DocumentEvent event, String filePath) throws CoreException {
 		IPath path = new Path(filePath);
 		IFile file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+		if(!file.exists()) {
+			System.out.println("file not exist");
+			return;
+		}
+			
 		Job updateErrorMarkerJob = Job.create("update syntax Error Marker", (ICoreRunnable) monitor -> {
 			deleteSyntaxErrorMarks(file);
 			addSyntaxErrorMark(event, file);
 		});
+			
+		if(updateErrorMarkerJob.cancel()) {
+			return;
+		}
+		
 		updateErrorMarkerJob.setUser(false);
 		updateErrorMarkerJob.setPriority(Job.DECORATE);
 		updateErrorMarkerJob.schedule(500);
@@ -465,7 +482,7 @@ public class JamEditorPlugin extends AbstractUIPlugin {
 				
 //				System.out.println("------------------duplicated : " + plan.getGoalSpecification());
 				
-				int start = da.getLineOffset(line - 1);
+				int start = da.getLineOffset(line - 1) + 2;
 				int end = da.getLineOffset(line) - 1;
 				
 				while(da.charAt(start) == ' ' || da.charAt(start) == '\t'){                                   
