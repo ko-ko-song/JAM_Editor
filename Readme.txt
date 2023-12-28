@@ -1,3 +1,5 @@
+eclipse version : 2018-12
+
 프로젝트 아래에 plan or plans folder에 있는 jam 파일의 삭제, 변경, 수정 등을 Listen함
 ==> jam 파일은 MyProject/plan 아래에 있어야함 이 아래 폴더 depth는 상관 없음
 
