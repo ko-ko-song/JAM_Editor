@@ -25,3 +25,14 @@ IFolder folder = ResourcesPlugin.getWorkspace().getRoot().getFolder(path);
 folder.exists() 이걸로 해야 함......
 
 
+[플러그인 수동 추가]
+1. eclipse\configuration\org.eclipse.equinox.simpleconfigurator\bundles.info에 아래 구문 추가
+   식별자,버전,file,4,false
+   ex) 
+   kr.ac.uos.ai.editor.jamEditor,1.0.0.4,plugins/kr.ac.uos.ai.editor.jamEditor_1.0.0.4.jar,4,false
+
+2. eclipse\plugins에
+   플러그인 파일(.jar) 추가
+
+정상적으로 플러그인이 동작하지 않을 경우
+~/your_workspace_path/.metadata/.log 확인해보기
